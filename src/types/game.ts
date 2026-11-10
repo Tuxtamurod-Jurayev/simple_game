@@ -196,4 +196,7 @@ export interface GameSettings {
   enemyFaction: Faction;
   difficulty: Difficulty;
   startingCredits: number;
+  isMultiplayer?: boolean;
+  roomId?: string;
+  playerNumber?: 1 | 2;
 }

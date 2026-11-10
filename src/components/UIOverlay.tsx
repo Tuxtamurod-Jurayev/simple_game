@@ -43,6 +43,7 @@ interface UIOverlayProps {
   placingBuildingType: BuildingTypeId | null;
   targetingSuperweapon: boolean;
   onMinimapJump?: (worldX: number, worldY: number) => void;
+  multiplayerInfo?: { roomId: string; playerNumber: 1 | 2 } | null;
 }
 
 export const UIOverlay: React.FC<UIOverlayProps> = ({
@@ -72,7 +73,8 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onTacticalCommand,
   placingBuildingType,
   targetingSuperweapon,
-  onMinimapJump
+  onMinimapJump,
+  multiplayerInfo
 }) => {
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between overflow-hidden z-10">
@@ -90,6 +92,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
           audioEnabled={audioEnabled}
           onToggleAudio={onToggleAudio}
           onExitMenu={onExitMenu}
+          multiplayerInfo={multiplayerInfo}
         />
       </div>
 

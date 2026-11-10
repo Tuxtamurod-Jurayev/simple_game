@@ -27,6 +27,8 @@ import {
   playLaserBeam,
   speakVoice
 } from './systems/audioSystem';
+import { multiplayerService } from './systems/multiplayerSystem';
+import { MoveCommand } from './three/systems/mouseControlSystem';
 
 import { SkirmishMenu } from './components/SkirmishMenu';
 import { ThreeGameCanvas } from './three/ThreeGameCanvas';
@@ -37,6 +39,11 @@ export default function App() {
   const [playerFaction, setPlayerFaction] = useState<Faction>('USA');
   const [enemyFaction, setEnemyFaction] = useState<Faction>('China');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+
+  // Multiplayer State
+  const [isMultiplayer, setIsMultiplayer] = useState<boolean>(false);
+  const [playerNumber, setPlayerNumber] = useState<1 | 2>(1);
+  const [roomId, setRoomId] = useState<string>('BATTLE_ROOM_1');
 
   // Economic & Base Stats
   const [credits, setCredits] = useState<number>(5000);
@@ -81,185 +88,17 @@ export default function App() {
     { id: 'A10Strike', name: 'A-10 Thunderbolt', cooldown: 90, currentCooldown: 0, reqRank: 3 }
   ]);
 
-  // Start new Skirmish match
-  const handleStartGame = (settings: GameSettings) => {
-    initAudio();
-    setPlayerFaction(settings.playerFaction);
-    setEnemyFaction(settings.enemyFaction);
-    setDifficulty(settings.difficulty);
-    setCredits(settings.startingCredits);
-    setAiCredits(settings.difficulty === 'hard' ? 5500 : settings.difficulty === 'medium' ? 3000 : 1500);
-    setGeneralXp(0);
-    setWinner(null);
-
-    // Initial Camera centered on player base (top-left)
-    setCamera({ x: 0, y: 0, speed: 12 });
-    fogSystemRef.current.reset();
-
-    // 1. Initial Player Base (Top-Left 60, 60)
-    const pBaseType: BuildingTypeId =
-      settings.playerFaction === 'USA' ? 'USA_HQ' : settings.playerFaction === 'China' ? 'China_HQ' : 'GLA_HQ';
-    const pCfg = BUILDING_CONFIGS[pBaseType];
-
-    const initialPlayerHQ: Building = {
-      id: 1,
-      type: pBaseType,
-      team: 'player',
-      faction: settings.playerFaction,
-      x: 120,
-      y: 120,
-      width: pCfg.width,
-      height: pCfg.height,
-      hp: pCfg.hp,
-      maxHp: pCfg.hp,
-      buildProgress: 100,
-      isCompleted: true,
-      powerProduced: pCfg.powerProduced,
-      powerConsumed: pCfg.powerConsumed,
-      productionQueue: [],
-      productionProgress: 0,
-      cost: pCfg.cost,
-      radarAngle: 0
-    };
-
-    // Initial Player Reactor
-    const pReactorType: BuildingTypeId =
-      settings.playerFaction === 'USA' ? 'USA_Reactor' : settings.playerFaction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
-    const pRCfg = BUILDING_CONFIGS[pReactorType];
-    const initialPlayerReactor: Building = {
-      id: 3,
-      type: pReactorType,
-      team: 'player',
-      faction: settings.playerFaction,
-      x: 230,
-      y: 70,
-      width: pRCfg.width,
-      height: pRCfg.height,
-      hp: pRCfg.hp,
-      maxHp: pRCfg.hp,
-      buildProgress: 100,
-      isCompleted: true,
-      powerProduced: pRCfg.powerProduced,
-      powerConsumed: pRCfg.powerConsumed,
-      productionQueue: [],
-      productionProgress: 0,
-      cost: pRCfg.cost
-    };
-
-    // Initial Player Supply Depot
-    const pDepotType: BuildingTypeId =
-      settings.playerFaction === 'USA' ? 'USA_SupplyDepot' : settings.playerFaction === 'China' ? 'China_SupplyCenter' : 'GLA_Barracks';
-    const pDCfg = BUILDING_CONFIGS[pDepotType];
-    const initialPlayerDepot: Building = {
-      id: 4,
-      type: pDepotType,
-      team: 'player',
-      faction: settings.playerFaction,
-      x: 90,
-      y: 230,
-      width: pDCfg.width,
-      height: pDCfg.height,
-      hp: pDCfg.hp,
-      maxHp: pDCfg.hp,
-      buildProgress: 100,
-      isCompleted: true,
-      powerProduced: pDCfg.powerProduced,
-      powerConsumed: pDCfg.powerConsumed,
-      productionQueue: [],
-      productionProgress: 0,
-      cost: pDCfg.cost
-    };
-
-    // 2. Initial Enemy Base (Bottom-Right 1900, 1150)
-    const eBaseType: BuildingTypeId =
-      settings.enemyFaction === 'USA' ? 'USA_HQ' : settings.enemyFaction === 'China' ? 'China_HQ' : 'GLA_HQ';
-    const eCfg = BUILDING_CONFIGS[eBaseType];
-
-    const initialEnemyHQ: Building = {
-      id: 2,
-      type: eBaseType,
-      team: 'enemy',
-      faction: settings.enemyFaction,
-      x: 2000,
-      y: 1250,
-      width: eCfg.width,
-      height: eCfg.height,
-      hp: eCfg.hp,
-      maxHp: eCfg.hp,
-      buildProgress: 100,
-      isCompleted: true,
-      powerProduced: eCfg.powerProduced,
-      powerConsumed: eCfg.powerConsumed,
-      productionQueue: [],
-      productionProgress: 0,
-      cost: eCfg.cost,
-      radarAngle: 0
-    };
-
-    const eReactorType: BuildingTypeId =
-      settings.enemyFaction === 'USA' ? 'USA_Reactor' : settings.enemyFaction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
-    const eRCfg = BUILDING_CONFIGS[eReactorType];
-    const initialEnemyReactor: Building = {
-      id: 5,
-      type: eReactorType,
-      team: 'enemy',
-      faction: settings.enemyFaction,
-      x: 2120,
-      y: 1200,
-      width: eRCfg.width,
-      height: eRCfg.height,
-      hp: eRCfg.hp,
-      maxHp: eRCfg.hp,
-      buildProgress: 100,
-      isCompleted: true,
-      powerProduced: eRCfg.powerProduced,
-      powerConsumed: eRCfg.powerConsumed,
-      productionQueue: [],
-      productionProgress: 0,
-      cost: eRCfg.cost
-    };
-
-    setBuildings([initialPlayerHQ, initialPlayerReactor, initialPlayerDepot, initialEnemyHQ, initialEnemyReactor]);
-
-    // Initial Units
-    const pHarvesterType: UnitTypeId =
-      settings.playerFaction === 'USA'
-        ? 'SupplyChinook'
-        : settings.playerFaction === 'China'
-        ? 'SupplyTruck_China'
-        : 'Worker_GLA';
-    const pCombatType: UnitTypeId =
-      settings.playerFaction === 'USA' ? 'Crusader' : settings.playerFaction === 'China' ? 'Battlemaster' : 'Scorpion';
-
-    const eHarvesterType: UnitTypeId =
-      settings.enemyFaction === 'USA'
-        ? 'SupplyChinook'
-        : settings.enemyFaction === 'China'
-        ? 'SupplyTruck_China'
-        : 'Worker_GLA';
-    const eCombatType: UnitTypeId =
-      settings.enemyFaction === 'USA' ? 'Crusader' : settings.enemyFaction === 'China' ? 'Battlemaster' : 'Scorpion';
-
-    const pU1 = createUnit(pHarvesterType, 'player', settings.playerFaction, 240, 160);
-    const pU2 = createUnit(pCombatType, 'player', settings.playerFaction, 280, 240);
-
-    const eU1 = createUnit(eHarvesterType, 'enemy', settings.enemyFaction, 1920, 1260);
-    const eU2 = createUnit(eCombatType, 'enemy', settings.enemyFaction, 1880, 1200);
-
-    setUnits([pU1, pU2, eU1, eU2]);
-    salvageCratesRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    superweaponStrikesRef.current = [];
-
-    setInSkirmish(false);
-    speakVoice('select', settings.playerFaction, audioEnabled);
-  };
-
-  const createUnit = (type: UnitTypeId, team: 'player' | 'enemy', faction: Faction, x: number, y: number): Unit => {
+  const createUnit = (
+    type: UnitTypeId,
+    team: 'player' | 'enemy',
+    faction: Faction,
+    x: number,
+    y: number,
+    customId?: number
+  ): Unit => {
     const cfg = UNIT_CONFIGS[type];
     return {
-      id: Date.now() + Math.random(),
+      id: customId !== undefined ? customId : Date.now() + Math.random(),
       type,
       team,
       faction,
@@ -285,6 +124,188 @@ export default function App() {
     };
   };
 
+  // Start new Skirmish or Multiplayer match
+  const handleStartGame = (settings: GameSettings) => {
+    initAudio();
+    const isMp = Boolean(settings.isMultiplayer);
+    const pNum = (settings.playerNumber ?? 1) as 1 | 2;
+
+    setIsMultiplayer(isMp);
+    setPlayerNumber(pNum);
+    if (settings.roomId) setRoomId(settings.roomId);
+
+    setPlayerFaction(settings.playerFaction);
+    setEnemyFaction(settings.enemyFaction);
+    setDifficulty(settings.difficulty);
+    setCredits(settings.startingCredits);
+    setAiCredits(settings.difficulty === 'hard' ? 5500 : settings.difficulty === 'medium' ? 3000 : 1500);
+    setGeneralXp(0);
+    setWinner(null);
+    fogSystemRef.current.reset();
+
+    const isP2 = isMp && pNum === 2;
+
+    // Initial Camera
+    if (isP2) {
+      setCamera({ x: 1450, y: 980, speed: 12 });
+    } else {
+      setCamera({ x: 0, y: 0, speed: 12 });
+    }
+
+    // BASE 1: Top-Left (120, 120)
+    const base1Faction = isP2 ? settings.enemyFaction : settings.playerFaction;
+    const base1Team = isP2 ? 'enemy' : 'player';
+    const b1BaseType: BuildingTypeId =
+      base1Faction === 'USA' ? 'USA_HQ' : base1Faction === 'China' ? 'China_HQ' : 'GLA_HQ';
+    const b1Cfg = BUILDING_CONFIGS[b1BaseType];
+
+    const b1HQ: Building = {
+      id: 1,
+      type: b1BaseType,
+      team: base1Team,
+      faction: base1Faction,
+      x: 120,
+      y: 120,
+      width: b1Cfg.width,
+      height: b1Cfg.height,
+      hp: b1Cfg.hp,
+      maxHp: b1Cfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: b1Cfg.powerProduced,
+      powerConsumed: b1Cfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: b1Cfg.cost,
+      radarAngle: 0
+    };
+
+    const b1ReactorType: BuildingTypeId =
+      base1Faction === 'USA' ? 'USA_Reactor' : base1Faction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
+    const b1RCfg = BUILDING_CONFIGS[b1ReactorType];
+    const b1Reactor: Building = {
+      id: 3,
+      type: b1ReactorType,
+      team: base1Team,
+      faction: base1Faction,
+      x: 230,
+      y: 70,
+      width: b1RCfg.width,
+      height: b1RCfg.height,
+      hp: b1RCfg.hp,
+      maxHp: b1RCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: b1RCfg.powerProduced,
+      powerConsumed: b1RCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: b1RCfg.cost
+    };
+
+    const b1DepotType: BuildingTypeId =
+      base1Faction === 'USA' ? 'USA_SupplyDepot' : base1Faction === 'China' ? 'China_SupplyCenter' : 'GLA_Barracks';
+    const b1DCfg = BUILDING_CONFIGS[b1DepotType];
+    const b1Depot: Building = {
+      id: 4,
+      type: b1DepotType,
+      team: base1Team,
+      faction: base1Faction,
+      x: 90,
+      y: 230,
+      width: b1DCfg.width,
+      height: b1DCfg.height,
+      hp: b1DCfg.hp,
+      maxHp: b1DCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: b1DCfg.powerProduced,
+      powerConsumed: b1DCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: b1DCfg.cost
+    };
+
+    // BASE 2: Bottom-Right (2000, 1250)
+    const base2Faction = isP2 ? settings.playerFaction : settings.enemyFaction;
+    const base2Team = isP2 ? 'player' : 'enemy';
+    const b2BaseType: BuildingTypeId =
+      base2Faction === 'USA' ? 'USA_HQ' : base2Faction === 'China' ? 'China_HQ' : 'GLA_HQ';
+    const b2Cfg = BUILDING_CONFIGS[b2BaseType];
+
+    const b2HQ: Building = {
+      id: 2,
+      type: b2BaseType,
+      team: base2Team,
+      faction: base2Faction,
+      x: 2000,
+      y: 1250,
+      width: b2Cfg.width,
+      height: b2Cfg.height,
+      hp: b2Cfg.hp,
+      maxHp: b2Cfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: b2Cfg.powerProduced,
+      powerConsumed: b2Cfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: b2Cfg.cost,
+      radarAngle: 0
+    };
+
+    const b2ReactorType: BuildingTypeId =
+      base2Faction === 'USA' ? 'USA_Reactor' : base2Faction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
+    const b2RCfg = BUILDING_CONFIGS[b2ReactorType];
+    const b2Reactor: Building = {
+      id: 5,
+      type: b2ReactorType,
+      team: base2Team,
+      faction: base2Faction,
+      x: 2120,
+      y: 1200,
+      width: b2RCfg.width,
+      height: b2RCfg.height,
+      hp: b2RCfg.hp,
+      maxHp: b2RCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: b2RCfg.powerProduced,
+      powerConsumed: b2RCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: b2RCfg.cost
+    };
+
+    setBuildings([b1HQ, b1Reactor, b1Depot, b2HQ, b2Reactor]);
+
+    // Initial Units
+    const b1HarvesterType: UnitTypeId =
+      base1Faction === 'USA' ? 'SupplyChinook' : base1Faction === 'China' ? 'SupplyTruck_China' : 'Worker_GLA';
+    const b1CombatType: UnitTypeId =
+      base1Faction === 'USA' ? 'Crusader' : base1Faction === 'China' ? 'Battlemaster' : 'Scorpion';
+
+    const b2HarvesterType: UnitTypeId =
+      base2Faction === 'USA' ? 'SupplyChinook' : base2Faction === 'China' ? 'SupplyTruck_China' : 'Worker_GLA';
+    const b2CombatType: UnitTypeId =
+      base2Faction === 'USA' ? 'Crusader' : base2Faction === 'China' ? 'Battlemaster' : 'Scorpion';
+
+    const u1 = createUnit(b1HarvesterType, base1Team, base1Faction, 240, 160, 101);
+    const u2 = createUnit(b1CombatType, base1Team, base1Faction, 280, 240, 102);
+
+    const u3 = createUnit(b2HarvesterType, base2Team, base2Faction, 1920, 1260, 201);
+    const u4 = createUnit(b2CombatType, base2Team, base2Faction, 1880, 1200, 202);
+
+    setUnits([u1, u2, u3, u4]);
+    salvageCratesRef.current = [];
+    projectilesRef.current = [];
+    particlesRef.current = [];
+    superweaponStrikesRef.current = [];
+
+    setInSkirmish(false);
+    speakVoice('select', settings.playerFaction, audioEnabled);
+  };
+
   // Cash addition handler
   const handleAddCash = useCallback((amount: number, team: 'player' | 'enemy') => {
     if (team === 'player') {
@@ -305,14 +326,12 @@ export default function App() {
   // General Powers trigger
   const handleTriggerPower = (powerId: GeneralPower['id']) => {
     if (powerId === 'SpySatellite') {
-      // Reveal 350px around player base or camera center
       fogSystemRef.current.triggerSpySatellite(camera.x + 550, camera.y + 270, 20);
       playLaserBeam(audioEnabled);
       setGeneralPowers(prev =>
         prev.map(p => (p.id === 'SpySatellite' ? { ...p, currentCooldown: p.cooldown } : p))
       );
     } else if (powerId === 'EmergencyRepair') {
-      // Heal all player units 50% & grant $750
       setCredits(prev => prev + 750);
       setUnits(prev =>
         prev.map(u => (u.team === 'player' ? { ...u, hp: Math.min(u.maxHp, u.hp + u.maxHp * 0.5) } : u))
@@ -322,7 +341,6 @@ export default function App() {
         prev.map(p => (p.id === 'EmergencyRepair' ? { ...p, currentCooldown: p.cooldown } : p))
       );
     } else if (powerId === 'A10Strike') {
-      // Carpet bombing run across camera center
       const cx = camera.x + 550;
       const cy = camera.y + 270;
       for (let i = 0; i < 8; i++) {
@@ -386,6 +404,10 @@ export default function App() {
       setScreenShake(8);
       setTimeout(() => setScreenShake(0), 1200);
     }
+
+    if (isMultiplayer) {
+      multiplayerService.sendSuperweapon(type, worldX, worldY);
+    }
   };
 
   // Tactical Commands: Stop, Scatter, Guard, AttackMove
@@ -399,13 +421,21 @@ export default function App() {
         u.attackTargetType = null;
         u.isAttackMoving = false;
       });
+      if (isMultiplayer) {
+        multiplayerService.sendMove(selectedUnits.map(u => u.id), selectedUnits[0].x, selectedUnits[0].y, false);
+      }
     } else if (command === 'scatter') {
       selectedUnits.forEach(u => {
-        u.targetX = u.x + (Math.random() * 140 - 70);
-        u.targetY = u.y + (Math.random() * 140 - 70);
+        const nx = u.x + (Math.random() * 140 - 70);
+        const ny = u.y + (Math.random() * 140 - 70);
+        u.targetX = nx;
+        u.targetY = ny;
         u.attackTargetId = null;
         u.attackTargetType = null;
         u.isAttackMoving = false;
+        if (isMultiplayer) {
+          multiplayerService.sendMove([u.id], nx, ny, false);
+        }
       });
     } else if (command === 'guard') {
       selectedUnits.forEach(u => {
@@ -425,7 +455,6 @@ export default function App() {
     const cfg = UNIT_CONFIGS[type];
     if (credits < cfg.cost) return;
 
-    // Find factory, barracks, airfield or HQ
     let target = buildings.find(b => {
       if (!b.isCompleted || b.team !== 'player') return false;
       if (cfg.category === 'air' && b.type.includes('Airfield')) return true;
@@ -452,9 +481,194 @@ export default function App() {
     target.productionQueue.push(type);
   };
 
-  // Game Logic / Physics / AI Loop (60 FPS tick)
+  // Multiplayer Event Listeners
+  useEffect(() => {
+    if (!isMultiplayer) return;
+
+    multiplayerService.onRemoteMove = data => {
+      const targetY = data.targetY ?? data.targetZ ?? 0;
+      setUnits(prev =>
+        prev.map(u => {
+          if (data.unitIds.includes(u.id)) {
+            return {
+              ...u,
+              targetX: data.targetX,
+              targetY: targetY,
+              attackTargetId: null,
+              attackTargetType: null,
+              isAttackMoving: !!data.isAttackMoving
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    multiplayerService.onRemoteAttack = data => {
+      setUnits(prev =>
+        prev.map(u => {
+          if (data.attackerIds.includes(u.id)) {
+            return {
+              ...u,
+              attackTargetId: data.targetId,
+              attackTargetType: data.targetType,
+              isAttackMoving: false
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    multiplayerService.onRemoteSpawn = data => {
+      const cfg = UNIT_CONFIGS[data.unitType];
+      const newUnit: Unit = {
+        id: data.unitId || Date.now() + Math.random(),
+        type: data.unitType,
+        team: 'enemy',
+        faction: data.faction,
+        x: data.x,
+        y: data.y,
+        radius: cfg.radius,
+        hp: cfg.hp,
+        maxHp: cfg.hp,
+        speed: cfg.speed,
+        targetX: data.x + 60,
+        targetY: data.y,
+        range: cfg.range,
+        damage: cfg.damage,
+        fireRate: cfg.fireRate,
+        lastShot: 0,
+        bodyAngle: Math.PI,
+        turretAngle: Math.PI,
+        kills: 0,
+        veterancy: 0,
+        carrying: 0,
+        isFlying: cfg.isFlying,
+        cost: cfg.cost
+      };
+      setUnits(prev => {
+        if (prev.some(u => u.id === newUnit.id)) return prev;
+        return [...prev, newUnit];
+      });
+    };
+
+    multiplayerService.onRemoteBuilding = data => {
+      const cfg = BUILDING_CONFIGS[data.type];
+      const newB: Building = {
+        id: data.id,
+        type: data.type,
+        team: 'enemy',
+        faction: data.faction,
+        x: data.x,
+        y: data.y,
+        width: cfg.width,
+        height: cfg.height,
+        hp: cfg.hp,
+        maxHp: cfg.hp,
+        buildProgress: 0,
+        isCompleted: false,
+        powerProduced: cfg.powerProduced,
+        powerConsumed: cfg.powerConsumed,
+        productionQueue: [],
+        productionProgress: 0,
+        cost: cfg.cost,
+        radarAngle: 0,
+        isDefense: cfg.isDefense,
+        range: cfg.range,
+        damage: cfg.damage,
+        fireRate: cfg.fireRate
+      };
+      setBuildings(prev => {
+        if (prev.some(b => b.id === newB.id)) return prev;
+        return [...prev, newB];
+      });
+    };
+
+    multiplayerService.onRemoteSuperweapon = data => {
+      superweaponStrikesRef.current.push({
+        type: data.type as any,
+        team: 'enemy',
+        x: data.x,
+        y: data.y,
+        timer: 0,
+        phase: 0,
+        duration: 10
+      });
+      playSiren(audioEnabled);
+    };
+
+    multiplayerService.onRemoteStateSync = data => {
+      if (!data.units) return;
+      const syncMap = new Map(data.units.map(u => [u.id, u]));
+      setUnits(prev =>
+        prev.map(u => {
+          const sync = syncMap.get(u.id);
+          if (sync && u.team === 'enemy') {
+            return {
+              ...u,
+              hp: sync.hp,
+              x: Math.abs(u.x - sync.x) > 35 ? sync.x : u.x,
+              y: Math.abs(u.y - sync.y) > 35 ? sync.y : u.y
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    multiplayerService.onOpponentDisconnected = () => {
+      setWinner('player');
+    };
+  }, [isMultiplayer, audioEnabled]);
+
+  // Local Action Relays for Multiplayer
+  const handleUnitMoveOrder = useCallback(
+    (commands: MoveCommand[]) => {
+      if (isMultiplayer && commands.length > 0) {
+        multiplayerService.sendMove(
+          commands.map(c => c.unitId),
+          commands[0].targetX,
+          commands[0].targetY,
+          false
+        );
+      }
+    },
+    [isMultiplayer]
+  );
+
+  const handleUnitAttackOrder = useCallback(
+    (unitIds: number[], targetId: number, targetType: 'unit' | 'building') => {
+      if (isMultiplayer) {
+        multiplayerService.sendAttack(unitIds, targetId, targetType);
+      }
+    },
+    [isMultiplayer]
+  );
+
+  const handleUnitAttackMoveOrder = useCallback(
+    (unitIds: number[], targetX: number, targetY: number) => {
+      if (isMultiplayer) {
+        multiplayerService.sendMove(unitIds, targetX, targetY, true);
+      }
+    },
+    [isMultiplayer]
+  );
+
+  const handleBuildingPlaced = useCallback(
+    (b: Building) => {
+      if (isMultiplayer) {
+        multiplayerService.sendBuildingPlace(b.id, b.type, b.faction, b.x, b.y);
+      }
+    },
+    [isMultiplayer]
+  );
+
+  // Game Logic / Physics / Loop (60 FPS tick)
   useEffect(() => {
     if (inSkirmish || winner) return;
+
+    let syncTick = 0;
 
     const gameInterval = setInterval(() => {
       // 1. Update Power production & consumption
@@ -469,7 +683,6 @@ export default function App() {
       setPowerProduced(produced);
       setPowerConsumed(consumed);
 
-      // Low power penalty for USA: slows production 50%
       const isLowPower = playerFaction === 'USA' && consumed > produced;
       const prodRate = isLowPower ? 0.6 : 1.2;
 
@@ -511,6 +724,10 @@ export default function App() {
             newUnit.targetY = spawnY;
 
             setUnits(prev => [...prev, newUnit]);
+
+            if (isMultiplayer && b.team === 'player') {
+              multiplayerService.sendSpawn(nextType, b.faction, spawnX, spawnY, newUnit.id);
+            }
           }
         }
       });
@@ -540,26 +757,35 @@ export default function App() {
       // 4. Fog of War Grid Update
       fogSystemRef.current.update(units, buildings);
 
-      // 5. AI System Update (3-State Machine)
-      aiSystemRef.current.update(
-        units,
-        buildings,
-        difficulty,
-        enemyFaction,
-        aiCredits,
-        amt => setAiCredits(prev => Math.max(0, prev - amt)),
-        u => setUnits(prev => [...prev, u]),
-        b => setBuildings(prev => [...prev, b]),
-        strike => superweaponStrikesRef.current.push(strike),
-        audioEnabled
-      );
+      // 5. AI System Update (Only in Single Player mode)
+      if (!isMultiplayer) {
+        aiSystemRef.current.update(
+          units,
+          buildings,
+          difficulty,
+          enemyFaction,
+          aiCredits,
+          amt => setAiCredits(prev => Math.max(0, prev - amt)),
+          u => setUnits(prev => [...prev, u]),
+          b => setBuildings(prev => [...prev, b]),
+          strike => superweaponStrikesRef.current.push(strike),
+          audioEnabled
+        );
+      }
 
-      // 6. Superweapon Strikes Resolution
+      // 6. Multiplayer Periodic State Synchronization (every 1.5s)
+      if (isMultiplayer) {
+        syncTick++;
+        if (syncTick % 15 === 0) {
+          multiplayerService.sendStateSync(units.filter(u => u.team === 'player'));
+        }
+      }
+
+      // 7. Superweapon Strikes Resolution
       for (let sIdx = superweaponStrikesRef.current.length - 1; sIdx >= 0; sIdx--) {
         const s = superweaponStrikesRef.current[sIdx];
         s.phase += 0.03;
 
-        // Damage units & buildings inside blast
         const blastRadius = s.type === 'NuclearMissile' ? 220 : s.type === 'ScudStorm' ? 160 : 60;
         const enemyTeam = s.team === 'player' ? 'enemy' : 'player';
 
@@ -580,16 +806,16 @@ export default function App() {
         }
       }
 
-      // 7. Cleanup dead entities
+      // 8. Cleanup dead entities
       setUnits(prev => prev.filter(u => u.hp > 0));
       setBuildings(prev => prev.filter(b => b.hp > 0));
 
-      // 8. General Powers Cooldowns
+      // 9. General Powers Cooldowns
       setGeneralPowers(prev =>
         prev.map(p => (p.currentCooldown > 0 ? { ...p, currentCooldown: Math.max(0, p.currentCooldown - 0.1) } : p))
       );
 
-      // 9. Win / Defeat condition
+      // 10. Win / Defeat condition
       if (buildings.length > 0) {
         const playerHQAlive = buildings.some(b => b.team === 'player' && b.type.includes('HQ') && b.hp > 0);
         const enemyHQAlive = buildings.some(b => b.team === 'enemy' && b.type.includes('HQ') && b.hp > 0);
@@ -611,10 +837,11 @@ export default function App() {
     enemyFaction,
     playerFaction,
     audioEnabled,
+    isMultiplayer,
     handleAddCash
   ]);
 
-  // SCREEN 1: SKIRMISH SETUP MENU
+  // SCREEN 1: SKIRMISH & MULTIPLAYER SETUP MENU
   if (inSkirmish) {
     return <SkirmishMenu onStartGame={handleStartGame} />;
   }
@@ -651,6 +878,10 @@ export default function App() {
         audioEnabled={audioEnabled}
         screenShake={screenShake}
         cameraJump={cameraJump}
+        onUnitMoveOrder={handleUnitMoveOrder}
+        onUnitAttackOrder={handleUnitAttackOrder}
+        onUnitAttackMoveOrder={handleUnitAttackMoveOrder}
+        onBuildingPlaced={handleBuildingPlaced}
       />
 
       {/* C&C GENERALS TAKTIK HUD VA BOSHQARUV PULTI (100% O'ZBEKCHA) */}
@@ -665,7 +896,10 @@ export default function App() {
         onTriggerPower={handleTriggerPower}
         audioEnabled={audioEnabled}
         onToggleAudio={() => setAudioEnabled(prev => !prev)}
-        onExitMenu={() => setInSkirmish(true)}
+        onExitMenu={() => {
+          if (isMultiplayer) multiplayerService.leaveRoom();
+          setInSkirmish(true);
+        }}
         selectedUnits={selectedUnits}
         selectedBuilding={selectedBuilding}
         camera={camera}
@@ -680,6 +914,14 @@ export default function App() {
             su.targetX = wx + (col - 1) * 32;
             su.targetY = wy + (row - 1) * 32;
           });
+          if (isMultiplayer && selectedUnits.length > 0) {
+            multiplayerService.sendMove(
+              selectedUnits.map(u => u.id),
+              wx,
+              wy,
+              false
+            );
+          }
         }}
         onSelectBuildingToPlace={bType => setPlacingBuildingType(bType)}
         onTrainUnit={handleTrainUnit}
@@ -689,6 +931,7 @@ export default function App() {
         placingBuildingType={placingBuildingType}
         targetingSuperweapon={targetingSuperweapon}
         onMinimapJump={(wx, wy) => setCameraJump({ x: wx, y: wy, timestamp: Date.now() })}
+        multiplayerInfo={isMultiplayer ? { roomId, playerNumber } : null}
       />
 
       {/* G'alaba / Mag'lubiyat oynasi */}
@@ -704,14 +947,19 @@ export default function App() {
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mb-6 font-mono leading-relaxed">
               {winner === 'player'
-                ? "General, barcha dushman kuchlari yo'q qilindi. Maydon to'liq sizning nazoratingizda!"
+                ? isMultiplayer
+                  ? "General, raqib ustidan to'liq g'alaba qozonildi! Jang maydoni sizning nazoratingizda."
+                  : "General, barcha dushman kuchlari yo'q qilindi. Maydon to'liq sizning nazoratingizda!"
                 : "Afsus, bazangiz dushman hujumiga bardosh bera olmadi. Qayta jang qilishga tayyormisiz?"}
             </p>
             <button
-              onClick={() => setInSkirmish(true)}
+              onClick={() => {
+                if (isMultiplayer) multiplayerService.leaveRoom();
+                setInSkirmish(true);
+              }}
               className="px-6 sm:px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs sm:text-sm tracking-wider uppercase rounded cursor-pointer shadow-2xl transition"
             >
-              SKIRMISH MENYUGA QAYTISH
+              {isMultiplayer ? "MULTIPLAYER MENYUGA QAYTISH" : "SKIRMISH MENYUGA QAYTISH"}
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ interface TopTacticalBarProps {
   audioEnabled: boolean;
   onToggleAudio: () => void;
   onExitMenu: () => void;
+  multiplayerInfo?: { roomId: string; playerNumber: 1 | 2 } | null;
 }
 
 export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
@@ -26,7 +27,8 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
   onTriggerPower,
   audioEnabled,
   onToggleAudio,
-  onExitMenu
+  onExitMenu,
+  multiplayerInfo
 }) => {
   const isLowPower = faction === 'USA' && powerConsumed > powerProduced;
   const rank = generalXp >= 1500 ? 3 : generalXp >= 800 ? 2 : generalXp >= 300 ? 1 : 0;
@@ -81,6 +83,15 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
           <span className="text-amber-400">{stars}</span>
           <span className="font-bold">{rank}</span>
         </div>
+
+        {/* Multiplayer Indicator */}
+        {multiplayerInfo && (
+          <div className="bg-cyan-950/80 px-2 sm:px-2.5 py-1 rounded border border-cyan-500/80 text-cyan-300 flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold shadow-inner">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-cyan-400">PvP #{multiplayerInfo.playerNumber}</span>
+            <span className="text-slate-400">({multiplayerInfo.roomId})</span>
+          </div>
+        )}
       </div>
 
       {/* 2. Superqurol Taymeri (agar qurilgan bo'lsa) */}

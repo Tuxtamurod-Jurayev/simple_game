@@ -24,7 +24,7 @@ import { Building3DManager } from './entities/Building3D';
 import { Unit3DManager } from './entities/Unit3D';
 import { Projectile3DManager } from './entities/Projectile3D';
 import { UnitController, ControllableUnit } from './systems/unitController';
-import { MouseControlSystem } from './systems/mouseControlSystem';
+import { MouseControlSystem, MoveCommand } from './systems/mouseControlSystem';
 
 interface ThreeGameCanvasProps {
   faction: Faction;
@@ -54,6 +54,10 @@ interface ThreeGameCanvasProps {
   audioEnabled: boolean;
   screenShake: number;
   cameraJump?: { x: number; y: number; timestamp: number } | null;
+  onUnitMoveOrder?: (commands: MoveCommand[]) => void;
+  onUnitAttackOrder?: (unitIds: number[], targetId: number, targetType: 'unit' | 'building') => void;
+  onUnitAttackMoveOrder?: (unitIds: number[], targetX: number, targetY: number) => void;
+  onBuildingPlaced?: (building: Building) => void;
 }
 
 export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
@@ -83,7 +87,11 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   onDeductCredits,
   audioEnabled,
   screenShake,
-  cameraJump
+  cameraJump,
+  onUnitMoveOrder,
+  onUnitAttackOrder,
+  onUnitAttackMoveOrder,
+  onBuildingPlaced
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,6 +111,16 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   const unitControllerRef = useRef<UnitController | null>(null);
   const mouseControlRef = useRef<MouseControlSystem | null>(null);
   const [attackMoveStatus, setAttackMoveStatus] = useState<boolean>(false);
+
+  // Callback refs for stable access inside Three.js effect
+  const onUnitMoveOrderRef = useRef(onUnitMoveOrder);
+  onUnitMoveOrderRef.current = onUnitMoveOrder;
+  const onUnitAttackOrderRef = useRef(onUnitAttackOrder);
+  onUnitAttackOrderRef.current = onUnitAttackOrder;
+  const onUnitAttackMoveOrderRef = useRef(onUnitAttackMoveOrder);
+  onUnitAttackMoveOrderRef.current = onUnitAttackMoveOrder;
+  const onBuildingPlacedRef = useRef(onBuildingPlaced);
+  onBuildingPlacedRef.current = onBuildingPlaced;
 
   // Ghost building placement mesh
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
@@ -205,6 +223,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           return u;
         })
       );
+      onUnitMoveOrderRef.current?.(commands);
     };
 
     mouseControl.onAttackOrder = (unitIds, targetId, targetType) => {
@@ -222,6 +241,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           return u;
         })
       );
+      onUnitAttackOrderRef.current?.(unitIds, targetId, targetType);
     };
 
     mouseControl.onAttackMoveOrder = (unitIds, targetX, targetY) => {
@@ -245,6 +265,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           return u;
         })
       );
+      onUnitAttackMoveOrderRef.current?.(unitIds, targetX, targetY);
     };
 
     mouseControl.onShowMarker = (x, y, z, colorHex) => {
@@ -503,6 +524,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             fireRate: cfg.fireRate
           };
           setBuildings(prev => [...prev, newBuilding]);
+          onBuildingPlacedRef.current?.(newBuilding);
           audio3DRef.current.playBuildSound();
           audio3DRef.current.speak('buildComplete', faction);
           setPlacingBuildingType(null);
@@ -700,6 +722,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
         prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: dockCX, targetY: dockCY, attackTargetId: null, isAttackMoving: false } : u))
       );
       audio3DRef.current.speak('move', faction);
+      onUnitMoveOrderRef.current?.(playerUnits.map(pu => ({ unitId: pu.id, targetX: dockCX, targetY: dockCY })));
       return;
     }
 

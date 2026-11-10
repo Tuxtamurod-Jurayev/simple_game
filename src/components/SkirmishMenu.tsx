@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Faction, Difficulty, GameSettings } from '../types/game';
 import { playBuildSound } from '../systems/audioSystem';
+import { multiplayerService } from '../systems/multiplayerSystem';
 
 interface SkirmishMenuProps {
   onStartGame: (settings: GameSettings) => void;
 }
 
 export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
+  // Game Mode: Singleplayer (AI) or Multiplayer (1 vs 1)
+  const [gameMode, setGameMode] = useState<'single' | 'multiplayer'>('single');
   const [playerFaction, setPlayerFaction] = useState<Faction>('USA');
   const [enemyFaction, setEnemyFaction] = useState<Faction>('China');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [startingCredits, setStartingCredits] = useState<number>(5000);
   const [isDeploying, setIsDeploying] = useState<boolean>(false);
+
+  // Multiplayer Room State
+  const [roomId, setRoomId] = useState<string>('BATTLE_ROOM_1');
+  const [serverOnline, setServerOnline] = useState<boolean>(false);
+  const [roomJoined, setRoomJoined] = useState<boolean>(false);
+  const [playerNumber, setPlayerNumber] = useState<1 | 2 | null>(null);
+  const [playerCount, setPlayerCount] = useState<number>(1);
+  const [opponentFaction, setOpponentFaction] = useState<Faction | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
   const factions = [
     {
@@ -46,15 +58,79 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
     }
   ];
 
+  // Socket.IO Setup for Multiplayer Mode
+  useEffect(() => {
+    if (gameMode !== 'multiplayer') return;
+
+    multiplayerService.connect();
+
+    multiplayerService.onConnectionChange = (connected) => {
+      setServerOnline(connected);
+      if (connected) {
+        setStatusMessage('Serverga ulandi. Xonaga qo\'shilishingiz mumkin.');
+      } else {
+        setStatusMessage('Serverga ulanish kutilmoqda (Port: 3001)...');
+        setRoomJoined(false);
+      }
+    };
+
+    multiplayerService.onRoomJoined = (data) => {
+      setRoomJoined(true);
+      setPlayerNumber(data.playerNumber);
+      setPlayerCount(data.playerCount);
+      if (data.opponent) {
+        setOpponentFaction(data.opponent.faction);
+        setEnemyFaction(data.opponent.faction);
+        setStatusMessage(`Raqib ulandi! Fraktsiyasi: ${data.opponent.faction}`);
+      } else {
+        setStatusMessage('Xona ochildi. Ikkinchi o\'yinchi kutilmoqda (1/2)...');
+      }
+    };
+
+    multiplayerService.onPlayerJoined = (data) => {
+      setPlayerCount(data.playerCount);
+      setOpponentFaction(data.faction);
+      setEnemyFaction(data.faction);
+      setStatusMessage(`2-O'yinchi kirdi! Fraktsiyasi: ${data.faction}`);
+    };
+
+    multiplayerService.onGameReady = (data) => {
+      setPlayerCount(2);
+      const oppFaction = data.player1.faction === playerFaction ? data.player2.faction : data.player1.faction;
+      setOpponentFaction(oppFaction);
+      setEnemyFaction(oppFaction);
+      setStatusMessage('Ikkala o\'yinchi tayyor! Jangni boshlashingiz mumkin!');
+    };
+
+    multiplayerService.onRoomFull = (data) => {
+      setStatusMessage(data.message);
+      setRoomJoined(false);
+    };
+
+    return () => {
+      // Keep connection or clean listeners
+    };
+  }, [gameMode, playerFaction]);
+
+  // Join Multiplayer Room
+  const handleJoinMultiplayerRoom = () => {
+    if (!roomId.trim()) return;
+    multiplayerService.joinRoom(roomId.trim(), playerFaction, startingCredits);
+    playBuildSound();
+  };
+
   const handleStart = () => {
     setIsDeploying(true);
     playBuildSound();
     setTimeout(() => {
       onStartGame({
         playerFaction,
-        enemyFaction,
+        enemyFaction: gameMode === 'multiplayer' && opponentFaction ? opponentFaction : enemyFaction,
         difficulty,
-        startingCredits
+        startingCredits,
+        isMultiplayer: gameMode === 'multiplayer',
+        roomId: gameMode === 'multiplayer' ? roomId : undefined,
+        playerNumber: gameMode === 'multiplayer' ? (playerNumber ?? 1) : 1
       });
     }, 450);
   };
@@ -83,19 +159,95 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
                 C&C: GENERALS 3D
               </h1>
               <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
-                Harbiy Taktika • Three.js Dvijok
+                Harbiy Taktika • 3D Three.js & Socket.IO Multiplayer
               </p>
             </div>
           </div>
-          <div className="text-[9px] sm:text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 sm:px-2.5 py-0.5 rounded font-bold shrink-0">
-            3D FAOL (60 FPS)
+          <div className="flex items-center gap-2">
+            {gameMode === 'multiplayer' && (
+              <div className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold border ${
+                serverOnline
+                  ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400'
+                  : 'bg-red-950/80 border-red-500 text-red-400'
+              }`}>
+                {serverOnline ? '● SERVER ONLINE (3001)' : '○ SERVER OFFLINE'}
+              </div>
+            )}
+            <div className="text-[9px] sm:text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 sm:px-2.5 py-0.5 rounded font-bold shrink-0">
+              60 FPS
+            </div>
           </div>
         </div>
+
+        {/* Mode Switcher: Singleplayer vs Multiplayer */}
+        <div className="grid grid-cols-2 gap-2 bg-black/60 p-1.5 rounded-lg border border-slate-700/80">
+          <button
+            onClick={() => setGameMode('single')}
+            className={`py-2 text-xs sm:text-sm font-black tracking-wider uppercase rounded transition flex items-center justify-center gap-2 cursor-pointer ${
+              gameMode === 'single'
+                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+            }`}
+          >
+            <span>⚔️ YAKKA JANG (AI)</span>
+          </button>
+          <button
+            onClick={() => setGameMode('multiplayer')}
+            className={`py-2 text-xs sm:text-sm font-black tracking-wider uppercase rounded transition flex items-center justify-center gap-2 cursor-pointer ${
+              gameMode === 'multiplayer'
+                ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+            }`}
+          >
+            <span>🌐 MULTIPLAYER (1 VS 1)</span>
+          </button>
+        </div>
+
+        {/* Multiplayer Room Controls Panel (Only when Multiplayer is selected) */}
+        {gameMode === 'multiplayer' && (
+          <div className="bg-cyan-950/30 border border-cyan-500/40 rounded-lg p-3 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex-1 w-full flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <label className="text-[10px] sm:text-[11px] font-black text-cyan-300 uppercase tracking-wider shrink-0">
+                Xona Kodi:
+              </label>
+              <input
+                type="text"
+                value={roomId}
+                onChange={e => setRoomId(e.target.value.toUpperCase())}
+                placeholder="XONA NOMI (MASALAN: BATTLE_1)"
+                className="bg-black/80 border border-cyan-500/50 rounded px-2.5 py-1 text-xs text-cyan-200 font-bold focus:outline-none focus:border-cyan-300 w-full sm:w-56"
+              />
+              <button
+                onClick={handleJoinMultiplayerRoom}
+                className="px-4 py-1 bg-cyan-600 hover:bg-cyan-500 text-black font-black text-xs rounded transition shadow cursor-pointer shrink-0"
+              >
+                {roomJoined ? '✓ XONADASIZ' : 'XONAGA KIRISH'}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-300 bg-black/60 px-3 py-1.5 rounded border border-slate-700/80 shrink-0">
+              <span className={`w-2 h-2 rounded-full ${roomJoined ? (playerCount === 2 ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400') : 'bg-slate-500'}`} />
+              <span>
+                {roomJoined
+                  ? `O'yinchi #${playerNumber || 1} (${playerCount}/2 o'yinchi)`
+                  : 'Xonaga ulanmagan'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Status Message Alert */}
+        {gameMode === 'multiplayer' && statusMessage && (
+          <div className="text-[10px] sm:text-[11px] px-3 py-1.5 rounded bg-black/50 border border-amber-500/30 text-amber-300 font-bold flex items-center gap-2">
+            <span className="text-amber-400 animate-pulse">ℹ</span>
+            <span>{statusMessage}</span>
+          </div>
+        )}
 
         {/* 1. Faction Selection (Responsive Cards) */}
         <div>
           <label className="text-[10px] sm:text-[11px] font-black text-amber-300 uppercase tracking-wider block mb-1.5 sm:mb-2">
-            1. FRAKTSIYA:
+            1. SIZNING FRAKTSIYANGIZ:
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
             {factions.map(f => {
@@ -157,49 +309,61 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
           {/* Raqib Fraktsiyasi */}
           <div className="bg-black/60 border border-slate-700 rounded p-2">
             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block mb-1 uppercase">
-              2. RAQIB (AI):
+              {gameMode === 'multiplayer' ? '2. RAQIB (MULTIPLAYER):' : '2. RAQIB (AI):'}
             </span>
-            <div className="grid grid-cols-3 gap-1">
-              {(['USA', 'China', 'GLA'] as Faction[]).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setEnemyFaction(f)}
-                  className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
-                    enemyFaction === f
-                      ? 'bg-red-600 text-white shadow'
-                      : 'bg-[#141e16] text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
+            {gameMode === 'multiplayer' ? (
+              <div className="py-2 px-2 text-center bg-cyan-950/40 border border-cyan-500/40 rounded text-cyan-300 text-xs font-bold">
+                {opponentFaction ? `Raqib: ${opponentFaction}` : "Raqib ulanishi kutilmoqda..."}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1">
+                {(['USA', 'China', 'GLA'] as Faction[]).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setEnemyFaction(f)}
+                    className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
+                      enemyFaction === f
+                        ? 'bg-red-600 text-white shadow'
+                        : 'bg-[#141e16] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* AI Qiyinchilik Darajasi */}
+          {/* AI Qiyinchilik Darajasi (Only for Singleplayer) */}
           <div className="bg-black/60 border border-slate-700 rounded p-2">
             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block mb-1 uppercase">
-              3. AI DARAJASI:
+              {gameMode === 'multiplayer' ? '3. REJIM:' : '3. AI DARAJASI:'}
             </span>
-            <div className="grid grid-cols-3 gap-1">
-              {[
-                { id: 'easy' as Difficulty, label: 'Oson' },
-                { id: 'medium' as Difficulty, label: 'O\'rta' },
-                { id: 'hard' as Difficulty, label: 'Qiyin' }
-              ].map(d => (
-                <button
-                  key={d.id}
-                  onClick={() => setDifficulty(d.id)}
-                  className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
-                    difficulty === d.id
-                      ? 'bg-amber-500 text-black shadow'
-                      : 'bg-[#141e16] text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
+            {gameMode === 'multiplayer' ? (
+              <div className="py-2 px-2 text-center bg-emerald-950/40 border border-emerald-500/40 rounded text-emerald-300 text-xs font-bold">
+                PvP (1 vs 1 Tarmoqli)
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { id: 'easy' as Difficulty, label: 'Oson' },
+                  { id: 'medium' as Difficulty, label: 'O\'rta' },
+                  { id: 'hard' as Difficulty, label: 'Qiyin' }
+                ].map(d => (
+                  <button
+                    key={d.id}
+                    onClick={() => setDifficulty(d.id)}
+                    className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
+                      difficulty === d.id
+                        ? 'bg-amber-500 text-black shadow'
+                        : 'bg-[#141e16] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Boshlang'ich Mablag' */}
@@ -228,14 +392,22 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
         {/* 3. Launch Button */}
         <button
           onClick={handleStart}
-          disabled={isDeploying}
+          disabled={isDeploying || (gameMode === 'multiplayer' && !serverOnline && !roomJoined)}
           className={`w-full py-2.5 sm:py-3 text-xs sm:text-sm font-black tracking-widest uppercase rounded-lg shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 border-2 ${
             isDeploying
               ? 'bg-emerald-400 text-black border-emerald-300 scale-[0.99] animate-pulse'
+              : gameMode === 'multiplayer'
+              ? 'bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 hover:from-cyan-400 hover:to-cyan-300 text-black border-cyan-300 shadow-cyan-500/20 hover:scale-[1.005]'
               : 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-black border-amber-300 shadow-amber-500/20 hover:scale-[1.005]'
           }`}
         >
-          <span>{isDeploying ? 'YUKLANMOQDA...' : 'JANGNI BOSHLASH'}</span>
+          <span>
+            {isDeploying
+              ? 'JANGGA KIRILMOQDA...'
+              : gameMode === 'multiplayer'
+              ? 'MULTIPLAYER JANGINI BOSHLASH'
+              : 'JANGNI BOSHLASH'}
+          </span>
           <span className="text-base sm:text-lg">➔</span>
         </button>
       </div>
