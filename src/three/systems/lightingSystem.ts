@@ -28,14 +28,14 @@ export class LightingSystem {
     this.hemisphereLight.position.set(0, 50, 0);
     this.scene.add(this.hemisphereLight);
 
-    // 3. Directional Sun Light with Shadows
-    this.sunLight = new THREE.DirectionalLight(0xfffaed, 1.35);
+    // 3. Directional Sun Light with Optimized Shadows
+    this.sunLight = new THREE.DirectionalLight(0xfffaed, 1.45);
     this.sunLight.position.set(60, 90, 45);
     this.sunLight.castShadow = true;
 
-    // Shadow Map configuration for crisp RTS shadows
-    this.sunLight.shadow.mapSize.width = 2048;
-    this.sunLight.shadow.mapSize.height = 2048;
+    // Optimized Shadow Map (1024x1024 for rock-solid 60 FPS)
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
     this.sunLight.shadow.camera.near = 10;
     this.sunLight.shadow.camera.far = 250;
     this.sunLight.shadow.bias = -0.0008;

@@ -24,26 +24,26 @@ export class Building3DManager {
   public scene: THREE.Scene;
   private buildingInstances: Map<number, Building3DInstance> = new Map();
 
-  // Procedural Camo & PBR Materials
+  // Procedural Camo & PBR Materials (Metallic Armor, Metal Parts & Glow)
   private matUSAArmor: THREE.MeshStandardMaterial;
   private matChinaArmor: THREE.MeshStandardMaterial;
   private matGLAArmor: THREE.MeshStandardMaterial;
   private matConcrete: THREE.MeshStandardMaterial;
   private matRunway: THREE.MeshStandardMaterial;
-  private matDarkSteel = new THREE.MeshStandardMaterial({ color: 0x1f2421, metalness: 0.8, roughness: 0.25 });
-  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x111312, metalness: 0.9, roughness: 0.2 });
+  private matDarkSteel = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.55, metalness: 0.92 });
+  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6, metalness: 0.95 });
   private matScaffold = new THREE.LineBasicMaterial({ color: 0xfacc15, linewidth: 2 });
-  private matGlowBlue = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-  private matGlowGreen = new THREE.MeshBasicMaterial({ color: 0x4ade80 });
-  private matGlowRed = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+  private matGlowBlue = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 1.5, roughness: 0.1 });
+  private matGlowGreen = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x16a34a, emissiveIntensity: 1.5, roughness: 0.1 });
+  private matGlowRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 1.5, roughness: 0.1 });
   private matSandbags = new THREE.MeshStandardMaterial({ color: 0x928169, roughness: 0.95 });
 
   // Shared Supply Container Materials
   private matContainerColors = [
-    new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.5, metalness: 0.3 }),
-    new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.5, metalness: 0.3 }),
-    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5, metalness: 0.3 }),
-    new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.5, metalness: 0.3 })
+    new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.4, metalness: 0.75 }),
+    new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.4, metalness: 0.75 }),
+    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.4, metalness: 0.75 }),
+    new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.4, metalness: 0.75 })
   ];
 
   // Shared HP Bar Materials
@@ -55,32 +55,38 @@ export class Building3DManager {
   constructor(scene: THREE.Scene) {
     this.scene = scene;
 
+    // Metallic Armor: roughness: 0.35, metalness: 0.85
     this.matUSAArmor = new THREE.MeshStandardMaterial({
+      color: 0x1e3a8a,
       map: getUSACamoTexture(),
-      metalness: 0.35,
-      roughness: 0.55
+      roughness: 0.35,
+      metalness: 0.85
     });
 
     this.matChinaArmor = new THREE.MeshStandardMaterial({
+      color: 0x991b1b,
       map: getChinaArmorTexture(),
-      metalness: 0.45,
-      roughness: 0.5
+      roughness: 0.35,
+      metalness: 0.85
     });
 
     this.matGLAArmor = new THREE.MeshStandardMaterial({
+      color: 0x78350f,
       map: getGLAArmorTexture(),
-      metalness: 0.25,
-      roughness: 0.65
+      roughness: 0.45,
+      metalness: 0.80
     });
 
     this.matConcrete = new THREE.MeshStandardMaterial({
       map: getConcreteTexture(),
-      roughness: 0.85
+      roughness: 0.88,
+      metalness: 0.1
     });
 
     this.matRunway = new THREE.MeshStandardMaterial({
       map: getRunwayTexture(),
-      roughness: 0.9
+      roughness: 0.9,
+      metalness: 0.15
     });
   }
 
@@ -380,6 +386,14 @@ export class Building3DManager {
     root.add(hpBarMesh);
 
     root.position.set(b.x * 0.1, 0, b.y * 0.1);
+
+    // Frustum Culling optimization for stable 60 FPS
+    root.traverse(child => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.frustumCulled = true;
+      }
+    });
+
     this.scene.add(root);
 
     const instance: Building3DInstance = {

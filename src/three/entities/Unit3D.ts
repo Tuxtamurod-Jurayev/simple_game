@@ -29,19 +29,19 @@ export class Unit3DManager {
   public scene: THREE.Scene;
   private unitInstances: Map<number, Unit3DInstance> = new Map();
 
-  // Camouflage & Military PBR Materials
+  // Camouflage & Military PBR Materials (Optimized Metallic Armor & Glow)
   private matUSAArmor: THREE.MeshStandardMaterial;
   private matChinaArmor: THREE.MeshStandardMaterial;
   private matGLAArmor: THREE.MeshStandardMaterial;
-  private matEnemyArmor = new THREE.MeshStandardMaterial({ color: 0x991b1b, metalness: 0.5, roughness: 0.45 });
+  private matEnemyArmor = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.35, metalness: 0.85 });
   private matTreads: THREE.MeshStandardMaterial;
-  private matDarkSteel = new THREE.MeshStandardMaterial({ color: 0x1f2421, metalness: 0.8, roughness: 0.25 });
-  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x111312, metalness: 0.9, roughness: 0.2 });
-  private matGlass = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.1 });
+  private matDarkSteel = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.55, metalness: 0.92 });
+  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6, metalness: 0.95 });
+  private matGlass = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 1.5, roughness: 0.1 });
   private matSelectRing = new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true });
   private matShadow = new THREE.MeshBasicMaterial({ color: 0x09090b, transparent: true, opacity: 0.45 });
-  private matMissileRed = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.5, roughness: 0.3 });
-  private matAfterburner = new THREE.MeshBasicMaterial({ color: 0xf97316 });
+  private matMissileRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 1.2, roughness: 0.3, metalness: 0.7 });
+  private matAfterburner = new THREE.MeshStandardMaterial({ color: 0xf97316, emissive: 0xea580c, emissiveIntensity: 2.0, roughness: 0.1 });
 
   // Shared HP Bar Materials
   private matHpBg = new THREE.MeshBasicMaterial({ color: 0x18181b, depthTest: false, transparent: true, opacity: 0.85 });
@@ -52,28 +52,34 @@ export class Unit3DManager {
   constructor(scene: THREE.Scene) {
     this.scene = scene;
 
+    // Metallic Armor: roughness: 0.35, metalness: 0.85 (High specular sun reflection)
     this.matUSAArmor = new THREE.MeshStandardMaterial({
+      color: 0x1e3a8a,
       map: getUSACamoTexture(),
-      metalness: 0.35,
-      roughness: 0.55
+      roughness: 0.35,
+      metalness: 0.85
     });
 
     this.matChinaArmor = new THREE.MeshStandardMaterial({
+      color: 0x991b1b,
       map: getChinaArmorTexture(),
-      metalness: 0.45,
-      roughness: 0.5
+      roughness: 0.35,
+      metalness: 0.85
     });
 
     this.matGLAArmor = new THREE.MeshStandardMaterial({
+      color: 0x78350f,
       map: getGLAArmorTexture(),
-      metalness: 0.25,
-      roughness: 0.65
+      roughness: 0.45,
+      metalness: 0.80
     });
 
+    // Tracks & Wheels: color: 0x334155, roughness: 0.6, metalness: 0.95
     this.matTreads = new THREE.MeshStandardMaterial({
+      color: 0x334155,
       map: getTreadTexture(),
-      roughness: 0.8,
-      metalness: 0.3
+      roughness: 0.6,
+      metalness: 0.95
     });
   }
 
@@ -414,6 +420,14 @@ export class Unit3DManager {
     root.add(hpBarMesh);
 
     root.position.set(u.x * 0.1, u.isFlying ? 18 : 0, u.y * 0.1);
+
+    // Frustum Culling optimization for stable 60 FPS
+    root.traverse(child => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.frustumCulled = true;
+      }
+    });
+
     this.scene.add(root);
 
     const inst: Unit3DInstance = {

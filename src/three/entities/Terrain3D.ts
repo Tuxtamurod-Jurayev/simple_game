@@ -18,9 +18,9 @@ export class Terrain3D {
     groundGeo.computeVertexNormals();
 
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0xc2a677, // Warm desert sand
-      roughness: 0.92,
-      metalness: 0.05
+      color: 0x2b261d, // Cho'l qumi (Mat)
+      roughness: 0.9,
+      metalness: 0.1
     });
 
     const groundMesh = new THREE.Mesh(groundGeo, groundMat);

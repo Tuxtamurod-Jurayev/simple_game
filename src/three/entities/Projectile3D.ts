@@ -17,10 +17,10 @@ export class Projectile3DManager {
   private dockInstances: Map<number, THREE.Group> = new Map();
   private crateInstances: Map<number, THREE.Group> = new Map();
 
-  // Materials
-  private matShell = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-  private matRocket = new THREE.MeshStandardMaterial({ color: 0xef4444 });
-  private matLaser = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+  // Materials (Standard Glowing & Metallic)
+  private matShell = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xd97706, emissiveIntensity: 1.6, roughness: 0.2, metalness: 0.8 });
+  private matRocket = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 1.4, roughness: 0.3, metalness: 0.7 });
+  private matLaser = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 1.8, roughness: 0.1 });
   private matCrate = new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.3 });
   private matSupplyBox = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
 
@@ -33,7 +33,7 @@ export class Projectile3DManager {
     laserGeo.translate(0, 60, 0);
     this.orbitalLaserMesh = new THREE.Mesh(
       laserGeo,
-      new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 })
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 2.2, roughness: 0.1, transparent: true, opacity: 0.88 })
     );
     this.orbitalLaserMesh.visible = false;
     this.scene.add(this.orbitalLaserMesh);
