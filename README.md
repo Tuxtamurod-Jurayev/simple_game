@@ -1,61 +1,75 @@
-# Command & Conquer: Generals (Tactical Web RTS v4.0) 🎮
+# Command & Conquer: Generals (Tactical Web RTS v5.0) 🎮
 
-Brauzerda ishlaydigan, **React + TypeScript + Canvas** arxitekturasiga ega to'liq modulli va zamonaviy real vaqt strategiya (RTS) o'yini.
+Brauzerda ishlaydigan, **React 18+, TypeScript, HTML5 Canvas 2D, Web Audio API va Web Speech API** asosidagi to'liq protsessual real vaqt strategiya (RTS) o'yini.
 
 ---
 
-## 🎖 4-Bosqich: Vizual Realizm, AI Qiyinchilik Darajalari va Haqiqiy Generals HUD
+## 🚀 5-Bosqich Yangiliklari: Asimmetrik Fraktsiyalar, Fog of War, Superqurollar va Sintezlangan Audio
 
-### 1. Taktik Skirmish Menyu (AI Qiyinchilik Darajalari)
-O'yin boshlanishida dushman generalining darajasi tanlanadi:
-* **Oson (Kursant / Easy):** Boshlang'ich mablag' $1,500, sekin rivojlanadi (9.5s), faqat yengil texnikalar bilan hujum qiladi.
-* **O'rta (Mayor / Medium):** Boshlang'ich mablag' $3,000, Crusader tanklari va Humvee guruhlari bilan muntazam hujum qiladi (6s).
-* **Qiyin (General / Brutal Hard):** Boshlang'ich mablag' $5,500, 1.6x daromad koeffitsienti, har 3.5 soniyada hujum qiladi, ikki stvolli og'ir **Overlord** tanklarini chiqaradi va eng kam jonli (HP) nishonlarni birinchi yo'q qiladi.
+### 1. Uchta Asimmetrik Fraktsiya
+* **USA (AQSH):**
+  * **Yuqori texnologiya va Lazer:** Paladin tanki yaqinlashayotgan dushman snaryadlarini lazer bilan urib tushiradi (*Point Defense Laser*).
+  * **Supply Chinook:** Havoda to'siqlarsiz uchuvchi ikki parrakli vertolyot (+$140 resurs).
+  * **Particle Cannon:** Osmondan tushuvchi moviy lazer nuri bilan dushmanni kuydiradi.
+  * **Maxsus qoida:** Energiya yetishmasa (Low Power), radar o'chadi va ishlab chiqarish 50% sekinlashadi.
+* **CHINA (XITOY):**
+  * **Horde Bonusi:** 4 va undan ortiq Xitoy tanklari birga tursa, ostida oltin aura yonadi va otish tezligi +25% ga oshadi!
+  * **Overlord Tank:** Ulkan 4 gusenitsali monstr tank, 2 ta og'ir parallel stvol va gattling pulemyoti.
+  * **Gattling Tank:** 6 stvolli aylanuvchi pulemyot (uzluksiz o't ochganda otish tezligi tezlashadi).
+  * **Nuclear Missile Silo:** Katta maydonga yadroviy zarba beruvchi raketa (Screen Shake va olovli zarba to'lqini).
+* **GLA (GLOBAL LIBERATION ARMY):**
+  * **No Power Required:** GLA elektr energiyasiga muhtoj emas (doimo 100% quvvatda ishlaydi).
+  * **Salvage Crates:** Dushman tanklari portlaganda tushgan metall qutilarni olib texnikalarini kuchaytiradi (+25% HP va qo'shimcha raketa stvollari).
+  * **Scorpion & Marauder Tanklari:** Og'ir to'plar va Scorpion raketalari.
+  * **Scud Storm:** 7 ta zaharli Scud raketasi va uzoq vaqt saqlanuvchi Anthrax gazi.
 
-### 2. Realistik Harbiy Modellar va VFX
-* **Crusader Tank:** Zirhli korpus, tishli gusenitsalar va 360° nishonga qarab aylanuvchi mustaqil minora (turret).
-* **Humvee Recon:** Yuqori tezlikka ega taktik razvedka mashinasi.
-* **Overlord Tank:** Ikki stvolli ulkan og'ir tank (1300 HP, 75 damage, stvollardan ketma-ket og'ir o't ochadi).
-* **Supply Truck:** Resurs kashfiyotchisi, konlardan $120 lik qutilarni tashib bazaga pul yig'adi.
-* **VFX & Zararlar:**
-  * O'q uzilganda stvoldan olov chaqnashi (*Muzzle Flash*).
-  * 40% dan kam HP qolgan texnikalardan qora tutun chiqishi.
-  * Portlash zarrachalari va zarba to'lqinlari.
-  * Cho'l relefi, asfalt baza yo'laklari va tosh barxanlari.
+---
 
-### 3. Klassik Generals HUD Interfeysi
-* **Yuqori Taktik Panel:**
-  * Credits ($), Energiya shkalasi (Power bar), Tanlangan AI darajasi.
-* **Asosiy Maydon (1100 x 520 px):**
-  * Box selection (ramka tortib bir nechta birlikni tanlash), nishon doiralari, snaryad treyseri.
-* **Pastki Generals Boshqaruv Paneli (Classic Control Bar):**
-  * **Chap:** Taktik Radar (Jonli Minimap - birliklar va bazalar koordinatasi bilan).
-  * **O'rta:** Tanlangan tank/bino portreti, zirh va buyruqlar holati.
-  * **O'ng (3x4 Command Grid):**
-    * Supply Truck ($250)
-    * Humvee Recon ($400)
-    * Crusader Tank ($700)
-    * Overlord Tank ($1200)
-    * War Factory ($800)
-    * **A-10 Air Strike (Aviatsiya zarbasi):** 100% ga to'lganda ketma-ket 5 ta kuchli aviabomba tashlab dushman bazasini yakson qiladi!
+### 2. Katta Xarita, Kamera va "Fog of War" (2D Grid Tizimi)
+* **Katta Jang Maydoni:** `2400 x 1600` piksel.
+* **Kamera Boshqaruvi:** `W, A, S, D` / strelkalar yoki sichqoncha bilan chetga (25px) borganda avtomatik siljish (Edge Scrolling).
+* **Urush Tumani (Fog of War):** `60 x 40` matritsa (jami 2400 katak):
+  * `0 (Qora):` O'rganilmagan hudud.
+  * `1 (Yarim qorong'i - Shroud):` Avval ko'rilgan landshaft va binolar, lekin harakatdagi dushman tanklari yashirin.
+  * `2 (Ochiq - Visible):` Birliklar ko'rish radiusidagi to'liq ochiq maydon.
+
+---
+
+### 3. Protsessual Vizual Chizmalar va Sintezlangan Audio
+* **0 Tashqi Fayl:** Barcha binolar, tanklar, aylanuvchi minoralar, samolyotlar va zarrachalar kod yordamida (Canvas 2D) protsessual chiziladi.
+* **Web Audio API:**
+  * Og'ir tank to'pi zarbasi (`sawtooth` 140Hz -> 30Hz + shovqin).
+  * Lazer nuri (`sine` + `square` 880Hz -> 1760Hz).
+  * Gattling pulemyoti va trevoga sirenasi.
+  * Portlashlar (kichik, katta, nuke).
+* **Web Speech API:** Fraktsiyalarga xos ovozli buyruqlar (*"Ready for action", "China will grow larger", "For the cause"*).
+
+---
+
+### 4. Taktik Boshqaruv Paneli (Command HUD)
+* **Taktik Radar (Minimap):** 240x135 interaktiv mini-xarita (chap tugma — kamerani siljitish, o'ng tugma — qo'shinni yuborish).
+* **Tanlangan Obyekt Portreti:** Zirh, HP, Veterancy unvoni va Production Queue (0% -> 100%).
+* **12-Tugmali Command Grid:** Tezkor klaviatura buyruqlari bilan inshootlar qurish va tanklar chiqarish.
+* **Superqurollar & General Powers:** Spy Satellite, Emergency Repair & Cash Drop, A-10 Thunderbolt carpet bombing.
 
 ---
 
 ## 🕹 Boshqaruv
-* **Sichqonchaning chap tugmasi:** Biror obyektni tanlash yoki ramka chizib **guruhlab tanlash**.
-* **Sichqonchaning o'ng tugmasi:** Tanlangan butun guruhni saf tortib (formation) harakatlantirish.
-* **War Factory qurish:** Menyu orqali tanlab xaritaga joylashtirish.
-* **A-10 Air Strike:** 100% zaryadlanganda bosib dushmanga havodan zarba berish.
+* `W, A, S, D` yoki Strelkalar — Kamerani surish.
+* Kursor chetiga borish — Edge scrolling.
+* Chap tugma bilan ramka tortish — Guruhlab tanlash (Box Selection).
+* O'ng tugma — Tanlangan birliklarni taktik safda yuborish.
+* `[Q]`, `[W]`, `[E]`, `[R]` — Tezkor qurilish va birlik chiqarish.
 
 ---
 
-## 🛠 O'rnatish va Ishga tushirish
+## 🛠 Ishga tushirish
 
 ```bash
 # Qaramliklarni o'rnatish
 npm install
 
-# Ishchi serverni ishga tushirish (Vite)
+# Dev serverni ishga tushirish (Vite)
 npm run dev
 
 # Ishlab chiqarish uchun build qilish
