@@ -156,10 +156,10 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
             <div>
               <h1 className="text-lg sm:text-xl font-black tracking-widest text-amber-400 uppercase drop-shadow">
-                C&C: GENERALS 3D
+                C&C: GENERALS 2D
               </h1>
               <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
-                Harbiy Taktika • 3D Three.js & Socket.IO Multiplayer
+                Klassik Harbiy Taktika • 2D Canvas Dvijok (Tezkor & Optimal)
               </p>
             </div>
           </div>

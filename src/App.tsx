@@ -28,10 +28,10 @@ import {
   speakVoice
 } from './systems/audioSystem';
 import { multiplayerService } from './systems/multiplayerSystem';
-import { MoveCommand } from './three/systems/mouseControlSystem';
+import { MoveCommand } from './types/game';
 
 import { SkirmishMenu } from './components/SkirmishMenu';
-import { ThreeGameCanvas } from './three/ThreeGameCanvas';
+import { BattlefieldCanvas } from './components/BattlefieldCanvas';
 import { UIOverlay } from './components/UIOverlay';
 
 export default function App() {
@@ -846,11 +846,11 @@ export default function App() {
     return <SkirmishMenu onStartGame={handleStartGame} />;
   }
 
-  // SCREEN 2: 3D THREE.JS BATTLEFIELD & C&C GENERALS COMMAND HUD
+  // SCREEN 2: 2D RTS MAYDONI & C&C GENERALS COMMAND HUD
   return (
     <div className="w-screen h-screen fixed inset-0 overflow-hidden bg-black select-none font-mono">
-      {/* 100VH TO'LIQ 3D THREE.JS MAYDONI */}
-      <ThreeGameCanvas
+      {/* 100VH TO'LIQ 2D BATTLEFIELD MAYDONI */}
+      <BattlefieldCanvas
         faction={playerFaction}
         units={units}
         setUnits={setUnits}

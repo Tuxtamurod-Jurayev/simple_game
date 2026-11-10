@@ -191,6 +191,12 @@ export interface FogCell {
   state: 0 | 1 | 2; // 0: Unexplored, 1: Shroud, 2: Visible
 }
 
+export interface MoveCommand {
+  unitId: number;
+  targetX: number;
+  targetY: number;
+}
+
 export interface GameSettings {
   playerFaction: Faction;
   enemyFaction: Faction;
