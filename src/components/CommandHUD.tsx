@@ -95,7 +95,7 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
     ctx.strokeRect(camX, camY, viewW, viewH);
   }, [camera, units, buildings, fogSystem]);
 
-  // Handle Minimap clicks
+  // Handle Minimap clicks (responsive rect)
   const handleMinimapClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = minimapCanvasRef.current;
     if (!canvas) return;
@@ -103,8 +103,8 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    const targetWorldX = (clickX / canvas.width) * WORLD_WIDTH;
-    const targetWorldY = (clickY / canvas.height) * WORLD_HEIGHT;
+    const targetWorldX = (clickX / rect.width) * WORLD_WIDTH;
+    const targetWorldY = (clickY / rect.height) * WORLD_HEIGHT;
 
     if (e.button === 0) {
       setCamera(prev => ({
@@ -211,53 +211,55 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
   const hotkeys = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V'];
 
   return (
-    <div className="w-full max-w-[1200px] h-40 bg-gradient-to-b from-[#182219]/95 to-[#0b100c]/98 backdrop-blur-md border-x-2 border-t-2 border-slate-600/90 grid grid-cols-12 gap-2 p-1.5 shadow-2xl select-none font-mono rounded-t-lg">
+    <div className="w-full max-w-[98vw] xl:max-w-[1280px] h-auto min-h-[135px] max-h-[28vh] bg-gradient-to-b from-[#182219]/95 to-[#0b100c]/98 backdrop-blur-md border-x-2 border-t-2 border-slate-600/90 grid grid-cols-12 gap-1.5 sm:gap-2 p-1.5 shadow-2xl select-none font-mono rounded-t-lg">
       {/* 1. CHAP BLOK — TAKTIK RADAR */}
-      <div className="col-span-3 bg-black/90 border-2 border-slate-700/80 rounded p-1 flex flex-col items-center justify-between shadow-inner">
-        <div className="w-full flex justify-between text-[9px] text-emerald-400 px-1 font-bold">
+      <div className="col-span-3 bg-black/90 border border-slate-700/80 rounded p-1 flex flex-col items-center justify-between shadow-inner overflow-hidden">
+        <div className="w-full flex justify-between text-[8px] sm:text-[9px] text-emerald-400 px-1 font-bold">
           <span>RADAR</span>
           <span className="text-slate-400">FAOL</span>
         </div>
-        <canvas
-          ref={minimapCanvasRef}
-          width={240}
-          height={115}
-          onMouseDown={handleMinimapClick}
-          onContextMenu={e => e.preventDefault()}
-          className="cursor-crosshair border border-emerald-950/80 block rounded"
-        />
+        <div className="w-full flex-1 flex items-center justify-center min-h-0">
+          <canvas
+            ref={minimapCanvasRef}
+            width={240}
+            height={115}
+            onMouseDown={handleMinimapClick}
+            onContextMenu={e => e.preventDefault()}
+            className="cursor-crosshair border border-emerald-950/80 block rounded w-full h-auto aspect-[240/115] max-h-[110px] object-contain"
+          />
+        </div>
       </div>
 
       {/* 2. O'RTA BLOK — STATUS VA OBYEKT */}
-      <div className="col-span-4 bg-[#111912]/90 border-2 border-slate-700/80 rounded p-1.5 flex gap-2 shadow-inner">
+      <div className="col-span-4 bg-[#111912]/90 border border-slate-700/80 rounded p-1.5 flex gap-1.5 sm:gap-2 shadow-inner overflow-hidden">
         <canvas
           ref={portraitCanvasRef}
           width={55}
           height={55}
-          className="border border-slate-700 rounded bg-slate-950 self-start shadow"
+          className="border border-slate-700 rounded bg-slate-950 self-start shadow shrink-0 w-11 h-11 sm:w-14 sm:h-14"
         />
 
-        <div className="flex-1 flex flex-col justify-between text-xs overflow-hidden">
+        <div className="flex-1 flex flex-col justify-between text-xs overflow-hidden min-w-0">
           {selectedUnits.length > 0 ? (
-            <div>
-              <div className="flex justify-between items-center border-b border-slate-700 pb-0.5 mb-1">
-                <span className="font-bold text-amber-400 truncate text-[11px]">
+            <div className="overflow-hidden">
+              <div className="flex justify-between items-center border-b border-slate-700 pb-0.5 mb-0.5">
+                <span className="font-bold text-amber-400 truncate text-[10px] sm:text-[11px]">
                   {selectedUnits.length === 1
                     ? (UNIT_CONFIGS[selectedUnits[0].type]?.uzbekName || selectedUnits[0].type).split('(')[0]
                     : `${selectedUnits.length} ta birlik`}
                 </span>
                 {selectedUnits.length === 1 && selectedUnits[0].veterancy > 0 && (
-                  <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1 rounded border border-amber-400 shrink-0">
+                  <span className="text-[8px] sm:text-[9px] bg-amber-500/20 text-amber-300 px-1 rounded border border-amber-400 shrink-0">
                     ★{selectedUnits[0].veterancy}
                   </span>
                 )}
               </div>
               {selectedUnits.length === 1 ? (
-                <div className="text-[10px] text-slate-300 space-y-0.5">
+                <div className="text-[9px] sm:text-[10px] text-slate-300 space-y-0.5 truncate">
                   <div>
                     HP: {Math.max(0, Math.floor(selectedUnits[0].hp))}/{selectedUnits[0].maxHp}
                   </div>
-                  <div>
+                  <div className="truncate">
                     Zarar: {selectedUnits[0].damage} | Masofa: {selectedUnits[0].range}
                   </div>
                   {selectedUnits[0].carrying > 0 && (
@@ -265,29 +267,29 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[10px] text-slate-400">
+                <div className="text-[9px] sm:text-[10px] text-slate-400">
                   Buyruqqa tayyor. Harakat: O'ng tugma.
                 </div>
               )}
             </div>
           ) : selectedBuilding ? (
-            <div>
-              <div className="flex justify-between items-center border-b border-slate-700 pb-0.5 mb-1">
-                <span className="font-bold text-sky-400 truncate text-[11px]">
+            <div className="overflow-hidden">
+              <div className="flex justify-between items-center border-b border-slate-700 pb-0.5 mb-0.5">
+                <span className="font-bold text-sky-400 truncate text-[10px] sm:text-[11px]">
                   {(BUILDING_CONFIGS[selectedBuilding.type]?.uzbekName || selectedBuilding.type).split('(')[0]}
                 </span>
-                <span className="text-[9px] text-emerald-400 shrink-0">
+                <span className="text-[8px] sm:text-[9px] text-emerald-400 shrink-0">
                   {selectedBuilding.buildProgress < 100
                     ? `${Math.floor(selectedBuilding.buildProgress)}%`
                     : 'TAYYOR'}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-300 space-y-0.5">
+              <div className="text-[9px] sm:text-[10px] text-slate-300 space-y-0.5 truncate">
                 <div>
                   HP: {Math.max(0, Math.floor(selectedBuilding.hp))}/{selectedBuilding.maxHp}
                 </div>
                 {selectedBuilding.productionQueue.length > 0 && (
-                  <div className="text-amber-300 font-bold">
+                  <div className="text-amber-300 font-bold truncate">
                     Chiqarilmoqda: {selectedBuilding.productionQueue[0]} ({Math.floor(selectedBuilding.productionProgress)}%)
                   </div>
                 )}
@@ -298,56 +300,56 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
             </div>
           ) : (
             <div className="text-slate-400 flex flex-col justify-center h-full">
-              <span className="text-amber-400 font-bold text-[11px] uppercase">{faction}</span>
-              <span className="text-[10px]">Birliklarni tanlang yoki buyruq bering.</span>
+              <span className="text-amber-400 font-bold text-[10px] sm:text-[11px] uppercase">{faction}</span>
+              <span className="text-[9px] sm:text-[10px] truncate">Birliklarni tanlang yoki buyruq bering.</span>
             </div>
           )}
 
-          <div className="text-[9px] text-slate-500 border-t border-slate-800 pt-0.5 flex justify-between">
+          <div className="text-[8px] sm:text-[9px] text-slate-500 border-t border-slate-800 pt-0.5 flex justify-between">
             <span>2400x1600</span>
-            <span>ALOQA: BARQAROR</span>
+            <span className="truncate">ALOQA: BARQAROR</span>
           </div>
         </div>
       </div>
 
       {/* 3. O'NG BLOK — SETKA (COMMAND GRID) */}
-      <div className="col-span-5 bg-[#0f1710]/90 border-2 border-slate-700/80 rounded p-1 flex flex-col justify-between shadow-inner">
+      <div className="col-span-5 bg-[#0f1710]/90 border border-slate-700/80 rounded p-1 flex flex-col justify-between shadow-inner overflow-hidden">
         {/* Toifalar */}
-        <div className="flex gap-1 border-b border-slate-700/80 pb-1 mb-1">
+        <div className="flex gap-1 border-b border-slate-700/80 pb-0.5 mb-1">
           <button
             onClick={() => setActiveTab('build')}
-            className={`flex-1 py-0.5 text-[9px] font-bold rounded uppercase transition cursor-pointer ${
+            className={`flex-1 py-0.5 text-[8px] sm:text-[9px] font-bold rounded uppercase transition cursor-pointer ${
               activeTab === 'build'
                 ? 'bg-amber-500 text-black shadow'
                 : 'bg-black/50 text-slate-400 hover:text-slate-200'
             }`}
           >
-            🏗️ Inshootlar
+            🏗️ Inshoot
           </button>
           <button
             onClick={() => setActiveTab('train')}
-            className={`flex-1 py-0.5 text-[9px] font-bold rounded uppercase transition cursor-pointer ${
+            className={`flex-1 py-0.5 text-[8px] sm:text-[9px] font-bold rounded uppercase transition cursor-pointer ${
               activeTab === 'train'
                 ? 'bg-amber-500 text-black shadow'
                 : 'bg-black/50 text-slate-400 hover:text-slate-200'
             }`}
           >
-            ⚔️ Qo'shinlar
+            ⚔️ Qo'shin
           </button>
           <button
             onClick={() => setActiveTab('tactics')}
-            className={`flex-1 py-0.5 text-[9px] font-bold rounded uppercase transition cursor-pointer ${
+            className={`flex-1 py-0.5 text-[8px] sm:text-[9px] font-bold rounded uppercase transition cursor-pointer ${
               activeTab === 'tactics'
                 ? 'bg-amber-500 text-black shadow'
                 : 'bg-black/50 text-slate-400 hover:text-slate-200'
             }`}
           >
-            🎯 Buyruqlar
+            🎯 Buyruq
           </button>
         </div>
 
         {/* 12-Tugmali Setka */}
-        <div className="grid grid-cols-4 gap-1 flex-1">
+        <div className="grid grid-cols-4 gap-1 flex-1 overflow-y-auto">
           {activeTab === 'build' && (
             <>
               {getFactionBuildings().map((bType, idx) => {
@@ -356,12 +358,12 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
                   <button
                     key={bType}
                     onClick={() => onSelectBuildingToPlace(bType)}
-                    className="bg-[#1b261c] hover:bg-emerald-900/60 border border-emerald-600/40 hover:border-emerald-400 text-white p-1 rounded flex flex-col justify-between text-left transition cursor-pointer shadow"
+                    className="bg-[#1b261c] hover:bg-emerald-900/60 border border-emerald-600/40 hover:border-emerald-400 text-white p-0.5 sm:p-1 rounded flex flex-col justify-between text-left transition cursor-pointer shadow min-h-[32px]"
                   >
-                    <span className="text-[9px] text-amber-400 font-bold truncate block">
+                    <span className="text-[8px] sm:text-[9px] text-amber-400 font-bold truncate block">
                       [{hotkeys[idx]}] {cfg.uzbekName.split('(')[0]}
                     </span>
-                    <span className="text-[9px] text-emerald-300 font-black">${cfg.cost}</span>
+                    <span className="text-[8px] sm:text-[9px] text-emerald-300 font-black">${cfg.cost}</span>
                   </button>
                 );
               })}
@@ -376,12 +378,12 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
                   <button
                     key={uType}
                     onClick={() => onTrainUnit(uType)}
-                    className="bg-[#1b261c] hover:bg-amber-900/60 border border-amber-600/40 hover:border-amber-400 text-white p-1 rounded flex flex-col justify-between text-left transition cursor-pointer shadow"
+                    className="bg-[#1b261c] hover:bg-amber-900/60 border border-amber-600/40 hover:border-amber-400 text-white p-0.5 sm:p-1 rounded flex flex-col justify-between text-left transition cursor-pointer shadow min-h-[32px]"
                   >
-                    <span className="text-[9px] text-amber-300 font-bold truncate block">
+                    <span className="text-[8px] sm:text-[9px] text-amber-300 font-bold truncate block">
                       [{hotkeys[idx]}] {cfg.uzbekName.split('(')[0]}
                     </span>
-                    <span className="text-[9px] text-amber-400 font-black">${cfg.cost}</span>
+                    <span className="text-[8px] sm:text-[9px] text-amber-400 font-black">${cfg.cost}</span>
                   </button>
                 );
               })}
@@ -392,36 +394,36 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
             <>
               <button
                 onClick={() => onTacticalCommand('stop')}
-                className="bg-red-950/70 hover:bg-red-800 border border-red-600 p-1 rounded text-left transition cursor-pointer flex flex-col justify-between"
+                className="bg-red-950/70 hover:bg-red-800 border border-red-600 p-0.5 sm:p-1 rounded text-left transition cursor-pointer flex flex-col justify-between min-h-[32px]"
               >
-                <span className="text-[9px] text-red-300 font-bold block">[Q] TO'XTA</span>
-                <span className="text-[8px] text-slate-400">To'xtatish</span>
+                <span className="text-[8px] sm:text-[9px] text-red-300 font-bold block">[Q] TO'XTA</span>
+                <span className="text-[7px] sm:text-[8px] text-slate-400">To'xtatish</span>
               </button>
               <button
                 onClick={() => onTacticalCommand('scatter')}
-                className="bg-amber-950/70 hover:bg-amber-800 border border-amber-600 p-1 rounded text-left transition cursor-pointer flex flex-col justify-between"
+                className="bg-amber-950/70 hover:bg-amber-800 border border-amber-600 p-0.5 sm:p-1 rounded text-left transition cursor-pointer flex flex-col justify-between min-h-[32px]"
               >
-                <span className="text-[9px] text-amber-300 font-bold block">[W] TARQAL</span>
-                <span className="text-[8px] text-slate-400">Tarqalish</span>
+                <span className="text-[8px] sm:text-[9px] text-amber-300 font-bold block">[W] TARQAL</span>
+                <span className="text-[7px] sm:text-[8px] text-slate-400">Tarqalish</span>
               </button>
               <button
                 onClick={() => onTacticalCommand('guard')}
-                className="bg-sky-950/70 hover:bg-sky-800 border border-sky-600 p-1 rounded text-left transition cursor-pointer flex flex-col justify-between"
+                className="bg-sky-950/70 hover:bg-sky-800 border border-sky-600 p-0.5 sm:p-1 rounded text-left transition cursor-pointer flex flex-col justify-between min-h-[32px]"
               >
-                <span className="text-[9px] text-sky-300 font-bold block">[E] QO'RIQ</span>
-                <span className="text-[8px] text-slate-400">Himoya</span>
+                <span className="text-[8px] sm:text-[9px] text-sky-300 font-bold block">[E] QO'RIQ</span>
+                <span className="text-[7px] sm:text-[8px] text-slate-400">Himoya</span>
               </button>
               <button
                 disabled={!isSuperweaponReady}
                 onClick={onTriggerSuperweaponTargetMode}
-                className={`p-1 rounded text-left transition cursor-pointer border flex flex-col justify-between ${
+                className={`p-0.5 sm:p-1 rounded text-left transition cursor-pointer border flex flex-col justify-between min-h-[32px] ${
                   isSuperweaponReady
                     ? 'bg-red-600 hover:bg-red-500 border-red-400 text-white animate-pulse shadow'
                     : 'bg-black/40 border-slate-700 text-slate-500 cursor-not-allowed'
                 }`}
               >
-                <span className="text-[9px] font-bold block">[R] ZARBA</span>
-                <span className="text-[8px]">{isSuperweaponReady ? 'TAYYOR' : 'Quvvatlanmoqda'}</span>
+                <span className="text-[8px] sm:text-[9px] font-bold block">[R] ZARBA</span>
+                <span className="text-[7px] sm:text-[8px]">{isSuperweaponReady ? 'TAYYOR' : 'Quvvat'}</span>
               </button>
             </>
           )}

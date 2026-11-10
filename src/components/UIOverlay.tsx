@@ -11,6 +11,7 @@ import {
 import { FogOfWarSystem } from '../systems/fogOfWarSystem';
 import { TopTacticalBar } from './TopTacticalBar';
 import { CommandHUD } from './CommandHUD';
+import { MissionSequenceBar } from './MissionSequenceBar';
 
 interface UIOverlayProps {
   faction: Faction;
@@ -75,7 +76,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between overflow-hidden">
       {/* 1. TOP TACTICAL BAR */}
-      <div className="pointer-events-auto flex justify-center">
+      <div className="pointer-events-auto flex justify-center w-full px-1">
         <TopTacticalBar
           faction={faction}
           credits={credits}
@@ -91,22 +92,25 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         />
       </div>
 
-      {/* 2. CENTER TACTICAL NOTIFICATIONS */}
-      <div className="flex flex-col items-center gap-1.5 pointer-events-none mb-1">
+      {/* 2. JANG KETMA-KETLIGI & MISSIYA VAZIFALARI */}
+      <MissionSequenceBar buildings={buildings} units={units} />
+
+      {/* 3. CENTER TACTICAL NOTIFICATIONS */}
+      <div className="flex flex-col items-center gap-1.5 pointer-events-none mb-1 px-2">
         {targetingSuperweapon && (
-          <div className="bg-red-950/95 border border-red-500 text-red-200 font-mono text-xs px-4 py-1.5 rounded shadow-xl animate-pulse">
+          <div className="bg-red-950/95 border border-red-500 text-red-200 font-mono text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded shadow-xl animate-pulse text-center">
             ⚠️ NISHONNI TANLANG (Bekor qilish: O'ng tugma)
           </div>
         )}
         {placingBuildingType && (
-          <div className="bg-emerald-950/95 border border-emerald-500 text-emerald-200 font-mono text-xs px-4 py-1.5 rounded shadow-xl">
-            🏗️ JOY TANLANG (Bekor qilish: O'ng tugma)
+          <div className="bg-emerald-950/95 border border-emerald-500 text-emerald-200 font-mono text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded shadow-xl text-center">
+            🏗️ JOY TANLANG: YASHIL — MUMKIN, QIZIL — BAND (Bekor qilish: O'ng tugma)
           </div>
         )}
       </div>
 
-      {/* 3. BOTTOM COMMAND & CONQUER HUD BAR */}
-      <div className="pointer-events-auto flex justify-center">
+      {/* 4. BOTTOM COMMAND & CONQUER HUD BAR */}
+      <div className="pointer-events-auto flex justify-center w-full px-1">
         <CommandHUD
           faction={faction}
           selectedUnits={selectedUnits}

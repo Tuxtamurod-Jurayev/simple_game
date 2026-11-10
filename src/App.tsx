@@ -573,11 +573,13 @@ export default function App() {
       );
 
       // 9. Win / Defeat condition
-      const playerHQAlive = buildings.some(b => b.team === 'player' && b.type.includes('HQ') && b.hp > 0);
-      const enemyHQAlive = buildings.some(b => b.team === 'enemy' && b.type.includes('HQ') && b.hp > 0);
+      if (buildings.length > 0) {
+        const playerHQAlive = buildings.some(b => b.team === 'player' && b.type.includes('HQ') && b.hp > 0);
+        const enemyHQAlive = buildings.some(b => b.team === 'enemy' && b.type.includes('HQ') && b.hp > 0);
 
-      if (!enemyHQAlive && !winner) setWinner('player');
-      if (!playerHQAlive && !winner) setWinner('enemy');
+        if (!enemyHQAlive && !winner) setWinner('player');
+        if (!playerHQAlive && !winner) setWinner('enemy');
+      }
     }, 100);
 
     return () => clearInterval(gameInterval);
@@ -672,23 +674,23 @@ export default function App() {
 
       {/* G'alaba / Mag'lubiyat oynasi */}
       {winner && (
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50">
-          <div className="bg-[#101812] border-4 border-amber-500 p-8 rounded-lg text-center shadow-2xl max-w-lg">
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-3 sm:p-6">
+          <div className="bg-[#101812] border-4 border-amber-500 p-5 sm:p-8 rounded-lg text-center shadow-2xl max-w-lg w-full">
             <h2
-              className={`text-4xl font-black tracking-widest mb-3 ${
+              className={`text-2xl sm:text-4xl font-black tracking-widest mb-3 ${
                 winner === 'player' ? 'text-emerald-400' : 'text-red-500'
               }`}
             >
               {winner === 'player' ? "G'ALABA! DUSHMAN BAZASI YAKSON ETILDI!" : "MAG'LUBIYAT! BAZANGIZ VAYRON BO'LDI"}
             </h2>
-            <p className="text-sm text-slate-300 mb-6 font-mono leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 mb-6 font-mono leading-relaxed">
               {winner === 'player'
                 ? "General, barcha dushman kuchlari yo'q qilindi. Maydon to'liq sizning nazoratingizda!"
                 : "Afsus, bazangiz dushman hujumiga bardosh bera olmadi. Qayta jang qilishga tayyormisiz?"}
             </p>
             <button
               onClick={() => setInSkirmish(true)}
-              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm tracking-wider uppercase rounded cursor-pointer shadow-2xl transition"
+              className="px-6 sm:px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs sm:text-sm tracking-wider uppercase rounded cursor-pointer shadow-2xl transition"
             >
               SKIRMISH MENYUGA QAYTISH
             </button>

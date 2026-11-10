@@ -60,7 +60,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
   };
 
   return (
-    <div className="w-screen h-screen fixed inset-0 bg-[#050906] flex items-center justify-center p-4 font-mono select-none overflow-hidden">
+    <div className="w-screen h-screen fixed inset-0 bg-[#050906] flex items-center justify-center p-2 sm:p-4 font-mono select-none overflow-y-auto">
       {/* Background Military Radar Sweeper */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-20">
         <div className="w-[750px] h-[750px] rounded-full border border-emerald-500/30 relative flex items-center justify-center">
@@ -73,40 +73,40 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
       </div>
 
       {/* Main Tactical Skirmish Card */}
-      <div className="relative z-10 w-full max-w-3xl bg-[#0c140e]/95 border-2 border-amber-500/80 rounded-xl p-5 shadow-2xl backdrop-blur-md flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative z-10 w-full max-w-4xl my-auto bg-[#0c140e]/95 border-2 border-amber-500/80 rounded-xl p-3 sm:p-5 shadow-2xl backdrop-blur-md flex flex-col gap-3 sm:gap-4 max-h-[96vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+        <div className="flex items-center justify-between border-b border-slate-700/80 pb-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
             <div>
-              <h1 className="text-xl font-black tracking-widest text-amber-400 uppercase drop-shadow">
+              <h1 className="text-lg sm:text-xl font-black tracking-widest text-amber-400 uppercase drop-shadow">
                 C&C: GENERALS 3D
               </h1>
-              <p className="text-[10px] text-slate-400 font-bold">
+              <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
                 Harbiy Taktika • Three.js Dvijok
               </p>
             </div>
           </div>
-          <div className="text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2.5 py-0.5 rounded font-bold">
+          <div className="text-[9px] sm:text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 sm:px-2.5 py-0.5 rounded font-bold shrink-0">
             3D FAOL (60 FPS)
           </div>
         </div>
 
-        {/* 1. Faction Selection (Minimalist Cards) */}
+        {/* 1. Faction Selection (Responsive Cards) */}
         <div>
-          <label className="text-[11px] font-black text-amber-300 uppercase tracking-wider block mb-2">
+          <label className="text-[10px] sm:text-[11px] font-black text-amber-300 uppercase tracking-wider block mb-1.5 sm:mb-2">
             1. FRAKTSIYA:
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
             {factions.map(f => {
               const isSelected = playerFaction === f.id;
               return (
                 <div
                   key={f.id}
                   onClick={() => setPlayerFaction(f.id)}
-                  className={`cursor-pointer rounded-lg p-3 border-2 transition-all duration-200 relative overflow-hidden bg-gradient-to-b ${f.color} ${
+                  className={`cursor-pointer rounded-lg p-2.5 sm:p-3 border-2 transition-all duration-200 relative overflow-hidden bg-gradient-to-b ${f.color} ${
                     isSelected
-                      ? `${f.border} shadow-lg scale-[1.02] bg-opacity-95`
+                      ? `${f.border} shadow-lg scale-[1.01] bg-opacity-95`
                       : 'border-slate-700/80 hover:border-slate-500 opacity-75 hover:opacity-100'
                   }`}
                 >
@@ -119,10 +119,10 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
                   <div className="flex items-baseline justify-between mb-0.5">
                     <span className="text-sm font-black text-white tracking-wide">{f.name}</span>
                   </div>
-                  <div className={`text-[10px] font-bold ${f.accent} mb-2`}>{f.sub}</div>
+                  <div className={`text-[10px] font-bold ${f.accent} mb-1.5`}>{f.sub}</div>
 
                   {/* Bullet points */}
-                  <div className="space-y-1 text-[10px] text-slate-200 mb-2 border-t border-white/10 pt-1.5">
+                  <div className="space-y-1 text-[9px] sm:text-[10px] text-slate-200 mb-2 border-t border-white/10 pt-1.5">
                     {f.features.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-1.5">
                         <span className="text-emerald-400 font-bold">•</span>
@@ -152,11 +152,11 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
           </div>
         </div>
 
-        {/* 2. Tactical Settings Grid (Compact) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 border-t border-slate-700/80 pt-2.5">
+        {/* 2. Tactical Settings Grid (Responsive) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 border-t border-slate-700/80 pt-2 sm:pt-2.5">
           {/* Raqib Fraktsiyasi */}
           <div className="bg-black/60 border border-slate-700 rounded p-2">
-            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block mb-1 uppercase">
               2. RAQIB (AI):
             </span>
             <div className="grid grid-cols-3 gap-1">
@@ -164,7 +164,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
                 <button
                   key={f}
                   onClick={() => setEnemyFaction(f)}
-                  className={`py-1 text-xs font-bold rounded transition cursor-pointer ${
+                  className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
                     enemyFaction === f
                       ? 'bg-red-600 text-white shadow'
                       : 'bg-[#141e16] text-slate-400 hover:text-white'
@@ -178,7 +178,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
 
           {/* AI Qiyinchilik Darajasi */}
           <div className="bg-black/60 border border-slate-700 rounded p-2">
-            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block mb-1 uppercase">
               3. AI DARAJASI:
             </span>
             <div className="grid grid-cols-3 gap-1">
@@ -190,7 +190,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
                 <button
                   key={d.id}
                   onClick={() => setDifficulty(d.id)}
-                  className={`py-1 text-xs font-bold rounded transition cursor-pointer ${
+                  className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
                     difficulty === d.id
                       ? 'bg-amber-500 text-black shadow'
                       : 'bg-[#141e16] text-slate-400 hover:text-white'
@@ -204,7 +204,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
 
           {/* Boshlang'ich Mablag' */}
           <div className="bg-black/60 border border-slate-700 rounded p-2">
-            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block mb-1 uppercase">
               4. MABLAG':
             </span>
             <div className="grid grid-cols-3 gap-1">
@@ -212,7 +212,7 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
                 <button
                   key={cash}
                   onClick={() => setStartingCredits(cash)}
-                  className={`py-1 text-xs font-bold rounded transition cursor-pointer ${
+                  className={`py-1 text-[11px] sm:text-xs font-bold rounded transition cursor-pointer ${
                     startingCredits === cash
                       ? 'bg-emerald-600 text-white shadow'
                       : 'bg-[#141e16] text-slate-400 hover:text-white'
@@ -229,14 +229,14 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
         <button
           onClick={handleStart}
           disabled={isDeploying}
-          className={`w-full py-3 text-sm font-black tracking-widest uppercase rounded-lg shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 border-2 ${
+          className={`w-full py-2.5 sm:py-3 text-xs sm:text-sm font-black tracking-widest uppercase rounded-lg shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 border-2 ${
             isDeploying
               ? 'bg-emerald-400 text-black border-emerald-300 scale-[0.99] animate-pulse'
               : 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-black border-amber-300 shadow-amber-500/20 hover:scale-[1.005]'
           }`}
         >
           <span>{isDeploying ? 'YUKLANMOQDA...' : 'JANGNI BOSHLASH'}</span>
-          <span className="text-lg">➔</span>
+          <span className="text-base sm:text-lg">➔</span>
         </button>
       </div>
     </div>

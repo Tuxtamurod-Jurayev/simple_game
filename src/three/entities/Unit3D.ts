@@ -349,6 +349,21 @@ export class Unit3DManager {
         const pdl = new THREE.Mesh(geoCache.getSphere(0.28, 8, 6), this.matGlass);
         pdl.position.set(0.7, 0.5, -0.35);
         turret.add(pdl);
+      } else if (u.type === 'Crusader') {
+        // Commander cupola & high-tech antenna
+        const cupola = new THREE.Mesh(geoCache.getCylinder(0.28, 0.32, 0.25, 6), this.matDarkSteel);
+        cupola.position.set(-0.45, 0.45, -0.2);
+        const antenna = new THREE.Mesh(geoCache.getCylinder(0.02, 0.03, 1.4, 6), this.matGunMetal);
+        antenna.position.set(-0.55, 1.15, -0.3);
+        turret.add(cupola);
+        turret.add(antenna);
+      } else if (u.type === 'Battlemaster') {
+        // Iconic Rear Auxiliary Fuel Barrels (Soviet / Chinese design)
+        for (const fx of [-0.6, 0.6]) {
+          const barrel = new THREE.Mesh(geoCache.getCylinder(0.24, 0.24, 0.7, 6, 'x'), this.matGunMetal);
+          barrel.position.set(fx, 0.75, -1.65);
+          chassis.add(barrel);
+        }
       }
 
     } else if (u.type === 'Humvee' || u.type === 'Technical' || u.type.includes('SupplyTruck') || u.type.includes('Worker')) {
