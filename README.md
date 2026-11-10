@@ -1,77 +1,73 @@
-# Command & Conquer: Generals (Tactical Web RTS v5.0) 🎮
+# Command & Conquer: Generals (Tactical 3D Web RTS v6.0) 🎮
 
-Brauzerda ishlaydigan, **React 18+, TypeScript, HTML5 Canvas 2D, Web Audio API va Web Speech API** asosidagi to'liq protsessual real vaqt strategiya (RTS) o'yini.
-
----
-
-## 🚀 5-Bosqich Yangiliklari: Asimmetrik Fraktsiyalar, Fog of War, Superqurollar va Sintezlangan Audio
-
-### 1. Uchta Asimmetrik Fraktsiya
-* **USA (AQSH):**
-  * **Yuqori texnologiya va Lazer:** Paladin tanki yaqinlashayotgan dushman snaryadlarini lazer bilan urib tushiradi (*Point Defense Laser*).
-  * **Supply Chinook:** Havoda to'siqlarsiz uchuvchi ikki parrakli vertolyot (+$140 resurs).
-  * **Particle Cannon:** Osmondan tushuvchi moviy lazer nuri bilan dushmanni kuydiradi.
-  * **Maxsus qoida:** Energiya yetishmasa (Low Power), radar o'chadi va ishlab chiqarish 50% sekinlashadi.
-* **CHINA (XITOY):**
-  * **Horde Bonusi:** 4 va undan ortiq Xitoy tanklari birga tursa, ostida oltin aura yonadi va otish tezligi +25% ga oshadi!
-  * **Overlord Tank:** Ulkan 4 gusenitsali monstr tank, 2 ta og'ir parallel stvol va gattling pulemyoti.
-  * **Gattling Tank:** 6 stvolli aylanuvchi pulemyot (uzluksiz o't ochganda otish tezligi tezlashadi).
-  * **Nuclear Missile Silo:** Katta maydonga yadroviy zarba beruvchi raketa (Screen Shake va olovli zarba to'lqini).
-* **GLA (GLOBAL LIBERATION ARMY):**
-  * **No Power Required:** GLA elektr energiyasiga muhtoj emas (doimo 100% quvvatda ishlaydi).
-  * **Salvage Crates:** Dushman tanklari portlaganda tushgan metall qutilarni olib texnikalarini kuchaytiradi (+25% HP va qo'shimcha raketa stvollari).
-  * **Scorpion & Marauder Tanklari:** Og'ir to'plar va Scorpion raketalari.
-  * **Scud Storm:** 7 ta zaharli Scud raketasi va uzoq vaqt saqlanuvchi Anthrax gazi.
+Brauzerda ishlaydigan, **React 18+, TypeScript, Three.js (@types/three), WebGL, Web Audio API va Web Speech API** asosidagi to'liq 3D protsessual real vaqt strategiya (RTS) o'yini.
 
 ---
 
-### 2. Katta Xarita, Kamera va "Fog of War" (2D Grid Tizimi)
-* **Katta Jang Maydoni:** `2400 x 1600` piksel.
-* **Kamera Boshqaruvi:** `W, A, S, D` / strelkalar yoki sichqoncha bilan chetga (25px) borganda avtomatik siljish (Edge Scrolling).
-* **Urush Tumani (Fog of War):** `60 x 40` matritsa (jami 2400 katak):
-  * `0 (Qora):` O'rganilmagan hudud.
-  * `1 (Yarim qorong'i - Shroud):` Avval ko'rilgan landshaft va binolar, lekin harakatdagi dushman tanklari yashirin.
-  * `2 (Ochiq - Visible):` Birliklar ko'rish radiusidagi to'liq ochiq maydon.
+## 🌟 6-BOSQICH YANGILIKLARI: THREE.JS 3D DVIJOK VA HARBIY MODELLASH
+
+2D Canvas renderlashdan butunlay voz kechilib, barcha obyektlar (binolar, tanklar, vertolyotlar, snaryadlar va zarrachalar) **Three.js** yordamida to'liq 3D muhitga o'tkazildi. Tashqi model fayllari (`.gltf`/`.obj`) ishlatilmasdan, barcha 3D modellar **Low-Poly / Military CAD Style** uslubida kod orqali protsessual qurilgan.
+
+### 1. 3D Arxitektura va Tizimlar
+* **`ThreeGameCanvas.tsx`**: WebGL 60 FPS silliq render sikli, PCFSoftShadowMap yumshoq dinamik soyalar, ACESFilmicToneMapping yorug'lik kompozitsiyasi va Raycaster integratsiyasi.
+* **`camera3D.ts`**: Strategik RTS kamerasi (burchak: ~55°, balandlik: 20-65 oralig'ida silliq Zoom, W/A/S/D va 25px chekka Edge Scroll).
+* **`lightingSystem.ts`**: 
+  * Quyosh nuri (`DirectionalLight`, `castShadow = true`, 2048x2048 shadow map).
+  * Cho'l atrof-muhiti iliq qum rangli yoritilishi (`AmbientLight`, `#fef08a`).
+  * Portlashlar nuqtasida paydo bo'lib 0.3s ichida so'nuvchi kuchli dinamik `PointLight` yorug'lik chaqnashlari.
+* **`audio3D.ts`**: Kameragacha bo'lgan masofaga qarab ovoz balandligini avtomatik sozlovchi pozitsion audio tizimi.
 
 ---
 
-### 3. Protsessual Vizual Chizmalar va Sintezlangan Audio
-* **0 Tashqi Fayl:** Barcha binolar, tanklar, aylanuvchi minoralar, samolyotlar va zarrachalar kod yordamida (Canvas 2D) protsessual chiziladi.
-* **Web Audio API:**
-  * Og'ir tank to'pi zarbasi (`sawtooth` 140Hz -> 30Hz + shovqin).
-  * Lazer nuri (`sine` + `square` 880Hz -> 1760Hz).
-  * Gattling pulemyoti va trevoga sirenasi.
-  * Portlashlar (kichik, katta, nuke).
-* **Web Speech API:** Fraktsiyalarga xos ovozli buyruqlar (*"Ready for action", "China will grow larger", "For the cause"*).
+### 2. Protsessual 3D Modellar va Animatsiyalar
+* **Binolar (`Building3D.ts`):**
+  * **HQ (Command Center):** Sakkizburchak bunker, metall vertolyot maydonchasi (Helipad), 360° doimiy aylanuvchi antenna parabolic radari.
+  * **War Factory:** Angar konstruksiyasi, og'ir temir darvoza, tom qismidagi tutun quvurlari.
+  * **Superqurollar:** Particle Cannon orbital antennasi, Nuclear Missile shaxtasi va Scud Storm raketa rampasi.
+  * **Qurilish animatsiyasi (Scaffolding):** 0% dan 100% gacha bino pastdan tepaga o'sadi (`scale.y: 0.001 -> 1.0`), atrofida metall karkas chiziqlari (`EdgesGeometry`) karkas hosil qiladi va 100% da zirhli qoplamaga aylanadi.
+* **Harbiy Texnikalar (`Unit3D.ts`):**
+  * **Zanjirli gusenitsalar (Tracks):** Har bir tank korpusi ostida mustaqil gusenitsa bloklari.
+  * **Mustaqil Aylanuvchi Minora (Turret):** Korpus harakat yo'nalishidan qat'i nazar, dushmanga 360° buriluvchi minora (`rotation.y`).
+  * **Stvol va Qaytish (Recoil):** O'q otilganda stvol orqaga tiralib, yana oldinga silliq qaytadi.
+  * **Overlord Tank:** 4 ta gusenitsali ulkan platforma, ikkita parallel stvol.
+  * **Gattling Tank:** 6 ta aylanuvchi stvolli minigun klasteri.
+  * **Supply Chinook:** Balandlikda (`y = 18`) uchuvchi, sekundiga 60 marta aylanuvchi parraklar va yerga tushuvchi dinamik soya.
+* **Snaryadlar va Zarrachalar (`Projectile3D.ts`, `ParticleFX.ts`):**
+  * 3D yorug'lik sferalari, tutun izli raketalar, orbital ko'k lazer nuri va yadroviy zamburug'simon bulut.
+  * Har bir portlashda 50+ mayda uchqunlar va kengayuvchi qora tutun zarrachalari.
+* **3D Fog of War (`FogOfWar3D.ts`):**
+  * 60x40 matritsa asosida yer yuzasida silliq filtrlanuvchi shaffoflik va qorong'ilik plitasi.
 
 ---
 
-### 4. Taktik Boshqaruv Paneli (Command HUD)
-* **Taktik Radar (Minimap):** 240x135 interaktiv mini-xarita (chap tugma — kamerani siljitish, o'ng tugma — qo'shinni yuborish).
-* **Tanlangan Obyekt Portreti:** Zirh, HP, Veterancy unvoni va Production Queue (0% -> 100%).
-* **12-Tugmali Command Grid:** Tezkor klaviatura buyruqlari bilan inshootlar qurish va tanklar chiqarish.
-* **Superqurollar & General Powers:** Spy Satellite, Emergency Repair & Cash Drop, A-10 Thunderbolt carpet bombing.
+### 3. Taktik Boshqaruv va HUD (`UIOverlay.tsx`)
+* **3D Maydonda Harakat:** O'ng tugma bosilganda yerda yashil taktik nishon nuri paydo bo'ladi va tanlangan birliklar qatorda harakatlanadi.
+* **Guruhlab Tanlash (Drag Select):** Ekranda sichqoncha bilan ramka tortib bir vaqtning o'zida o'nlab tanklarni tanlash.
+* **Ghost Placement:** Qurilish vaqtida yerda bino o'lchamiga mos yashil/qizil 3D kubik paydo bo'ladi.
+* **Minimap va 12 Tugmali Command Grid:** Mini-xarita radari, birliklar portreti va tezkor klaviatura buyruqlari.
 
 ---
 
 ## 🕹 Boshqaruv
-* `W, A, S, D` yoki Strelkalar — Kamerani surish.
-* Kursor chetiga borish — Edge scrolling.
+* `W, A, S, D` yoki Strelkalar — 3D kamerani surish.
+* Sichqoncha g'ildiragi (Scroll) — 3D kamerani yaqinlashtirish / uzoqlashtirish (Zoom).
+* Kursor chetiga borish — Avtomatik chetga surilish (Edge Scrolling).
 * Chap tugma bilan ramka tortish — Guruhlab tanlash (Box Selection).
-* O'ng tugma — Tanlangan birliklarni taktik safda yuborish.
-* `[Q]`, `[W]`, `[E]`, `[R]` — Tezkor qurilish va birlik chiqarish.
+* O'ng tugma — Harakatlanish yoki dushmanga hujum qilish buyrug'i.
+* `Q, W, E, R, A, S, D, F...` — Bino qurish va bo'linmalar chiqarish.
 
 ---
 
-## 🛠 Ishga tushirish
+## 🛠 O'rnatish va Ishga Tushirish
 
 ```bash
-# Qaramliklarni o'rnatish
+# Kutubxonalarni o'rnatish
 npm install
 
-# Dev serverni ishga tushirish (Vite)
+# Dasturni ishlab chiquvchi rejimida ishga tushirish
 npm run dev
 
 # Ishlab chiqarish uchun build qilish
 npm run build
 ```
+Brauzerda: `http://localhost:3000`

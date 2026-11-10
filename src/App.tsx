@@ -29,9 +29,8 @@ import {
 } from './systems/audioSystem';
 
 import { SkirmishMenu } from './components/SkirmishMenu';
-import { TopTacticalBar } from './components/TopTacticalBar';
-import { BattlefieldCanvas } from './components/BattlefieldCanvas';
-import { CommandHUD } from './components/CommandHUD';
+import { ThreeGameCanvas } from './three/ThreeGameCanvas';
+import { UIOverlay } from './components/UIOverlay';
 
 export default function App() {
   const [inSkirmish, setInSkirmish] = useState<boolean>(true);
@@ -513,27 +512,12 @@ export default function App() {
     return <SkirmishMenu onStartGame={handleStartGame} />;
   }
 
-  // SCREEN 2: BATTLEFIELD & GENERALS COMMAND HUD
+  // SCREEN 2: 3D THREE.JS BATTLEFIELD & C&C GENERALS COMMAND HUD
   return (
     <div className="min-h-screen bg-[#070b08] text-white flex flex-col items-center justify-between select-none font-mono overflow-hidden">
-      {/* 1. TOP TACTICAL HUD */}
-      <TopTacticalBar
-        faction={playerFaction}
-        credits={credits}
-        powerProduced={powerProduced}
-        powerConsumed={powerConsumed}
-        generalXp={generalXp}
-        superweaponTimer={superweaponTimer}
-        generalPowers={generalPowers}
-        onTriggerPower={handleTriggerPower}
-        audioEnabled={audioEnabled}
-        onToggleAudio={() => setAudioEnabled(prev => !prev)}
-        onExitMenu={() => setInSkirmish(true)}
-      />
-
-      {/* 2. MAIN BATTLEFIELD (1100 x 540 px Viewport into 2400 x 1600 World) */}
-      <div className="relative my-1">
-        <BattlefieldCanvas
+      {/* MAIN 3D BATTLEFIELD CANVAS (1100 x 560 px Viewport into 240 x 160 3D World) */}
+      <div className="relative w-[1100px] h-[560px] my-1 border-2 border-slate-700 rounded shadow-2xl overflow-hidden">
+        <ThreeGameCanvas
           faction={playerFaction}
           units={units}
           setUnits={setUnits}
@@ -582,9 +566,19 @@ export default function App() {
         )}
       </div>
 
-      {/* 3. CLASSIC C&C GENERALS COMMAND BAR (3-Column HUD) */}
-      <CommandHUD
+      {/* FULL C&C GENERALS COMMAND BAR & TACTICAL OVERLAY */}
+      <UIOverlay
         faction={playerFaction}
+        credits={credits}
+        powerProduced={powerProduced}
+        powerConsumed={powerConsumed}
+        generalXp={generalXp}
+        superweaponTimer={superweaponTimer}
+        generalPowers={generalPowers}
+        onTriggerPower={handleTriggerPower}
+        audioEnabled={audioEnabled}
+        onToggleAudio={() => setAudioEnabled(prev => !prev)}
+        onExitMenu={() => setInSkirmish(true)}
         selectedUnits={selectedUnits}
         selectedBuilding={selectedBuilding}
         camera={camera}
@@ -605,6 +599,8 @@ export default function App() {
         onTriggerSuperweaponTargetMode={() => setTargetingSuperweapon(true)}
         isSuperweaponReady={isSuperweaponReady}
         onTacticalCommand={handleTacticalCommand}
+        placingBuildingType={placingBuildingType}
+        targetingSuperweapon={targetingSuperweapon}
       />
     </div>
   );
