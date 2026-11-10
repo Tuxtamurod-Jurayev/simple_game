@@ -45,38 +45,38 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
   };
 
   return (
-    <div className="w-full max-w-[98vw] xl:max-w-[1280px] bg-gradient-to-b from-[#1a241b]/95 to-[#0e140f]/95 backdrop-blur-md border-x-2 border-b-2 border-slate-600/90 px-2 sm:px-3 py-1 flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 shadow-2xl text-[10px] sm:text-xs select-none font-mono rounded-b-lg">
+    <div className="w-full bg-[#09100a]/95 border-b border-amber-500/50 backdrop-blur-md px-2 sm:px-4 py-1.5 flex items-center justify-between gap-2 shadow-2xl text-[10px] sm:text-xs select-none font-mono">
       {/* 1. Pul, Quvvat, Unvon */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
+      <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
         {/* Mablag' */}
-        <div className="bg-black/70 px-2 sm:px-2.5 py-0.5 rounded border border-amber-500/60 flex items-center gap-1 shadow-inner">
-          <span className="text-slate-400 font-bold text-[9px] sm:text-[11px]">PUL:</span>
+        <div className="bg-black/80 px-2 sm:px-2.5 py-1 rounded border border-amber-500/70 flex items-center gap-1 shadow-inner">
+          <span className="text-slate-400 font-bold text-[9px] sm:text-[10px]">PUL:</span>
           <span className="text-xs sm:text-sm font-black text-amber-400">${Math.floor(credits).toLocaleString()}</span>
         </div>
 
         {/* Elektr quvvati */}
         {faction !== 'GLA' ? (
           <div
-            className={`px-2 sm:px-2.5 py-0.5 rounded border flex items-center gap-1 shadow-inner ${
+            className={`px-2 sm:px-2.5 py-1 rounded border flex items-center gap-1 shadow-inner ${
               isLowPower
                 ? 'bg-red-950/80 border-red-500 text-red-300 animate-pulse'
-                : 'bg-black/70 border-sky-500/60 text-sky-300'
+                : 'bg-black/80 border-sky-500/70 text-sky-300'
             }`}
           >
-            <span className="text-slate-400 font-bold text-[9px] sm:text-[11px]">QUVVAT:</span>
-            <span className="font-bold text-[9px] sm:text-[11px]">
+            <span className="text-slate-400 font-bold text-[9px] sm:text-[10px]">QUVVAT:</span>
+            <span className="font-bold text-[10px] sm:text-xs">
               {powerProduced}/{powerConsumed} GW
             </span>
             {isLowPower && <span className="text-[8px] bg-red-600 text-white px-1 rounded font-black">!</span>}
           </div>
         ) : (
-          <div className="bg-black/70 px-2 sm:px-2.5 py-0.5 rounded border border-emerald-500/60 text-emerald-400 font-bold text-[9px] sm:text-[11px]">
+          <div className="bg-black/80 px-2 sm:px-2.5 py-1 rounded border border-emerald-500/70 text-emerald-400 font-bold text-[10px] sm:text-xs">
             QUVVAT: 100%
           </div>
         )}
 
         {/* Qo'mondon unvoni */}
-        <div className="bg-black/70 px-2 sm:px-2.5 py-0.5 rounded border border-amber-500/60 text-amber-300 flex items-center gap-1 text-[9px] sm:text-[11px]">
+        <div className="bg-black/80 px-2 sm:px-2.5 py-1 rounded border border-amber-500/60 text-amber-300 flex items-center gap-1 text-[10px] sm:text-xs">
           <span className="text-slate-400 font-bold">UNVON:</span>
           <span className="text-amber-400">{stars}</span>
           <span className="font-bold">{rank}</span>
@@ -85,8 +85,8 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
 
       {/* 2. Superqurol Taymeri (agar qurilgan bo'lsa) */}
       {superweaponTimer !== null && (
-        <div className="bg-red-950/90 border border-red-500 px-2.5 py-0.5 rounded animate-pulse flex items-center gap-1.5 shadow-lg">
-          <span className="text-red-300 font-bold text-[9px] sm:text-[11px]">QUROL:</span>
+        <div className="bg-red-950/90 border border-red-500 px-2.5 py-1 rounded animate-pulse flex items-center gap-1.5 shadow-lg shrink-0">
+          <span className="text-red-300 font-bold text-[9px] sm:text-[10px]">QUROL:</span>
           <span className="text-xs sm:text-sm font-black text-red-400 tracking-wider">
             {superweaponTimer <= 0 ? 'TAYYOR!' : formatTimer(superweaponTimer)}
           </span>
@@ -94,7 +94,7 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
       )}
 
       {/* 3. General Qobiliyatlari va Tizim Sozlamalari */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         <div className="flex items-center gap-1">
           {generalPowers.map(p => {
             const isReady = p.currentCooldown <= 0 && rank >= p.reqRank;
@@ -103,7 +103,7 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
                 key={p.id}
                 disabled={!isReady}
                 onClick={() => onTriggerPower(p.id)}
-                className={`px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded border transition-all cursor-pointer ${
+                className={`px-1.5 sm:px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded border transition-all cursor-pointer ${
                   isReady
                     ? 'bg-amber-500/30 border-amber-400 text-amber-300 hover:bg-amber-400 hover:text-black shadow'
                     : 'bg-black/50 border-slate-700 text-slate-500 cursor-not-allowed'
@@ -119,21 +119,21 @@ export const TopTacticalBar: React.FC<TopTacticalBarProps> = ({
         {/* Ovoz */}
         <button
           onClick={onToggleAudio}
-          className={`px-1.5 sm:px-2 py-0.5 rounded border font-bold text-[9px] sm:text-[10px] transition cursor-pointer ${
+          className={`px-1.5 sm:px-2 py-1 rounded border font-bold text-[9px] sm:text-[10px] transition cursor-pointer ${
             audioEnabled
               ? 'bg-emerald-950 border-emerald-500 text-emerald-300 hover:bg-emerald-800'
               : 'bg-red-950 border-red-500 text-red-300 hover:bg-red-800'
           }`}
         >
-          {audioEnabled ? '🔊 OVOZ' : '🔇 OVOZ'}
+          {audioEnabled ? '🔊' : '🔇'}
         </button>
 
         {/* Chiqish */}
         <button
           onClick={onExitMenu}
-          className="px-2 sm:px-2.5 py-0.5 bg-red-900/80 hover:bg-red-700 text-white font-bold text-[9px] sm:text-[10px] rounded border border-red-600 transition cursor-pointer shadow"
+          className="px-2 sm:px-2.5 py-1 bg-red-900/80 hover:bg-red-700 text-white font-bold text-[9px] sm:text-[10px] rounded border border-red-600 transition cursor-pointer shadow"
         >
-          ✕ CHIQISH
+          ✕
         </button>
       </div>
     </div>

@@ -216,9 +216,9 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
   const hotkeys = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V'];
 
   return (
-    <div className="w-full max-w-[98vw] xl:max-w-[1280px] h-auto min-h-[135px] max-h-[28vh] bg-gradient-to-b from-[#182219]/95 to-[#0b100c]/98 backdrop-blur-md border-x-2 border-t-2 border-slate-600/90 grid grid-cols-12 gap-1.5 sm:gap-2 p-1.5 shadow-2xl select-none font-mono rounded-t-lg">
+    <div className="w-full h-[140px] sm:h-[155px] bg-[#0c140e]/98 backdrop-blur-md border-t-2 border-amber-500/70 shadow-2xl flex items-stretch gap-1.5 sm:gap-2 p-1.5 sm:p-2 select-none font-mono overflow-hidden">
       {/* 1. CHAP BLOK — TAKTIK RADAR */}
-      <div className="col-span-3 bg-black/90 border border-slate-700/80 rounded p-1 flex flex-col items-center justify-between shadow-inner overflow-hidden">
+      <div className="w-[170px] sm:w-[220px] shrink-0 bg-black/90 border border-slate-700/80 rounded p-1 flex flex-col justify-between shadow-inner overflow-hidden">
         <div className="w-full flex justify-between text-[8px] sm:text-[9px] text-emerald-400 px-1 font-bold">
           <span>RADAR</span>
           <span className="text-slate-400">FAOL</span>
@@ -236,7 +236,7 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
       </div>
 
       {/* 2. O'RTA BLOK — STATUS VA OBYEKT */}
-      <div className="col-span-4 bg-[#111912]/90 border border-slate-700/80 rounded p-1.5 flex gap-1.5 sm:gap-2 shadow-inner overflow-hidden">
+      <div className="w-[200px] sm:w-[260px] md:w-[300px] shrink-0 bg-[#121c13]/90 border border-slate-700/80 rounded p-1.5 flex gap-1.5 sm:gap-2 shadow-inner overflow-hidden">
         <canvas
           ref={portraitCanvasRef}
           width={55}
@@ -318,7 +318,7 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
       </div>
 
       {/* 3. O'NG BLOK — SETKA (COMMAND GRID) */}
-      <div className="col-span-5 bg-[#0f1710]/90 border border-slate-700/80 rounded p-1 flex flex-col justify-between shadow-inner overflow-hidden">
+      <div className="flex-1 min-w-[260px] bg-[#0f1710]/90 border border-slate-700/80 rounded p-1 flex flex-col justify-between shadow-inner overflow-hidden">
         {/* Toifalar */}
         <div className="flex gap-1 border-b border-slate-700/80 pb-0.5 mb-1">
           <button

@@ -75,9 +75,9 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onMinimapJump
 }) => {
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between overflow-hidden z-10">
       {/* 1. TOP TACTICAL BAR */}
-      <div className="pointer-events-auto flex justify-center w-full px-1">
+      <div className="pointer-events-auto w-full">
         <TopTacticalBar
           faction={faction}
           credits={credits}
@@ -94,21 +94,21 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
       </div>
 
       {/* 2. CENTER TACTICAL NOTIFICATIONS */}
-      <div className="flex flex-col items-center gap-1.5 pointer-events-none mb-1 px-2">
+      <div className="flex flex-col items-center gap-1.5 pointer-events-none mb-2 px-2">
         {targetingSuperweapon && (
-          <div className="bg-red-950/95 border border-red-500 text-red-200 font-mono text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded shadow-xl animate-pulse text-center">
+          <div className="bg-red-950/95 border-2 border-red-500 text-red-200 font-mono text-xs px-4 py-1.5 rounded-lg shadow-2xl animate-pulse text-center">
             ⚠️ NISHONNI TANLANG (Bekor qilish: O'ng tugma)
           </div>
         )}
         {placingBuildingType && (
-          <div className="bg-emerald-950/95 border border-emerald-500 text-emerald-200 font-mono text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded shadow-xl text-center">
+          <div className="bg-emerald-950/95 border-2 border-emerald-500 text-emerald-200 font-mono text-xs px-4 py-1.5 rounded-lg shadow-2xl text-center">
             🏗️ JOY TANLANG: YASHIL — MUMKIN, QIZIL — BAND (Bekor qilish: O'ng tugma)
           </div>
         )}
       </div>
 
       {/* 3. BOTTOM COMMAND & CONQUER HUD BAR */}
-      <div className="pointer-events-auto flex justify-center w-full px-1">
+      <div className="pointer-events-auto w-full">
         <CommandHUD
           faction={faction}
           selectedUnits={selectedUnits}

@@ -175,7 +175,6 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       scene,
       terrainRef.current.groundMesh
     );
-    mouseControl.initListeners(canvasRef.current);
     mouseControlRef.current = mouseControl;
 
     mouseControl.onSelectUnits = selUnits => {
@@ -515,7 +514,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
 
     // 3. Attack-Move Mode Active ('A' key pressed or toggled)
     if (mouseControlRef.current?.isAttackMoveKeyDown || mouseControlRef.current?.isAttackMoveActive) {
-      mouseControlRef.current.processAttackMove();
+      mouseControlRef.current.orderAt(e.clientX, e.clientY, rect);
       mouseControlRef.current.isAttackMoveActive = false;
       return;
     }
@@ -625,10 +624,8 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const dist = Math.hypot(currentX - startX, currentY - startY);
 
     if (dist < 6) {
-      // 7-BO'LIM: 3D Raycaster Chap Tugma Bilan Tanlash Mantiqi (Select)
-      if (mouseControlRef.current) {
-        mouseControlRef.current.processSelection();
-      }
+      // 7-BO'LIM: 3D Raycaster Chap Tugma Bilan Tanlash (Select)
+      mouseControlRef.current?.selectAt(e.clientX, e.clientY, rect);
     } else if (dragBox) {
       // Box Drag Selection: Select all player units inside box
       const newlySelected: Unit[] = [];
@@ -708,7 +705,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
 
     // 7-BO'LIM: 3D Raycaster O'ng Tugma Bilan Harakatlanish va Hujum Mantiqi (Move / Attack / Attack-Move)
     if (mouseControlRef.current) {
-      mouseControlRef.current.processContextOrder();
+      mouseControlRef.current.orderAt(e.clientX, e.clientY, rect);
     }
   };
 
@@ -760,16 +757,16 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       )}
 
       {/* 3D Mode Active Status Badge */}
-      <div className="absolute top-14 left-4 pointer-events-none flex items-center gap-2 bg-zinc-900/90 border border-emerald-500/50 px-3 py-1.5 rounded text-xs font-mono text-emerald-400 shadow-xl backdrop-blur-sm">
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-        <span className="font-bold tracking-wider">THREE.JS 3D DVIJOK • 60 FPS • 100VH TO'LIQ MAYDON</span>
+      <div className="absolute top-11 left-3 pointer-events-none flex items-center gap-1.5 bg-black/85 border border-emerald-500/50 px-2.5 py-1 rounded text-[10px] font-mono text-emerald-400 shadow-xl backdrop-blur-sm z-10">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="font-bold tracking-wider">3D DVIJOK • 60 FPS • TO'LIQ MAYDON</span>
       </div>
 
       {/* Attack-Move Mode Active Indicator */}
       {attackMoveStatus && (
-        <div className="absolute top-14 right-4 pointer-events-none flex items-center gap-2 bg-amber-950/90 border border-amber-500 px-3 py-1.5 rounded text-xs font-mono text-amber-300 shadow-xl backdrop-blur-sm animate-pulse">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-          <span className="font-bold tracking-wider">[A] HUJUMGA O'TISH (ATTACK-MOVE) • YERNI YOKI DUSHMANNI TANLANG</span>
+        <div className="absolute top-11 right-3 pointer-events-none flex items-center gap-1.5 bg-amber-950/90 border border-amber-500 px-2.5 py-1 rounded text-[10px] font-mono text-amber-300 shadow-xl backdrop-blur-sm animate-pulse z-10">
+          <span className="w-2 h-2 rounded-full bg-amber-500" />
+          <span className="font-bold tracking-wider">[A] ATTACK-MOVE FAOL • YERNI YOKI DUSHMANNI TANLANG</span>
         </div>
       )}
     </div>
