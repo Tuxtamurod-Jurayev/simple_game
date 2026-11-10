@@ -157,18 +157,28 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     unitMgrRef.current = new Unit3DManager(scene);
     projMgrRef.current = new Projectile3DManager(scene);
 
-    // 5. Ghost Placement Mesh
+    // 5. Ghost Placement Group (Wireframe Box + Ground Grid Footprint)
+    const ghostGroup = new THREE.Group();
     const gGeo = new THREE.BoxGeometry(6, 4, 6);
-    const gMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true, transparent: true, opacity: 0.8 });
-    const gMesh = new THREE.Mesh(gGeo, gMat);
-    gMesh.visible = false;
-    scene.add(gMesh);
-    ghostMeshRef.current = gMesh;
+    const gMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true, transparent: true, opacity: 0.85 });
+    const gBox = new THREE.Mesh(gGeo, gMat);
+    ghostGroup.add(gBox);
 
-    // 6. Right-Click Move Marker Decal
-    const mGeo = new THREE.RingGeometry(0.8, 1.2, 16);
+    const gPlaneGeo = new THREE.PlaneGeometry(6, 6);
+    gPlaneGeo.rotateX(-Math.PI / 2);
+    const gPlaneMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.35, depthWrite: false });
+    const gPlane = new THREE.Mesh(gPlaneGeo, gPlaneMat);
+    gPlane.position.y = -1.95;
+    ghostGroup.add(gPlane);
+
+    ghostGroup.visible = false;
+    scene.add(ghostGroup);
+    ghostMeshRef.current = ghostGroup as any;
+
+    // 6. Right-Click Waypoint Marker Decal (Green for Move, Red for Attack)
+    const mGeo = new THREE.RingGeometry(0.8, 1.4, 24);
     mGeo.rotateX(-Math.PI / 2);
-    const mMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.85 });
+    const mMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.9 });
     const mMesh = new THREE.Mesh(mGeo, mMat);
     mMesh.position.y = 0.12;
     mMesh.visible = false;
@@ -316,6 +326,9 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     if (placingBuildingType) {
       if (ghostValidRef.current) {
         const cfg = BUILDING_CONFIGS[placingBuildingType];
+        const snappedWorldX = Math.round(worldX / 10) * 10;
+        const snappedWorldY = Math.round(worldY / 10) * 10;
+
         if (credits >= cfg.cost) {
           onDeductCredits(cfg.cost);
           const newBuilding: Building = {
@@ -323,8 +336,8 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             type: placingBuildingType,
             team: 'player',
             faction,
-            x: worldX - cfg.width / 2,
-            y: worldY - cfg.height / 2,
+            x: snappedWorldX - cfg.width / 2,
+            y: snappedWorldY - cfg.height / 2,
             width: cfg.width,
             height: cfg.height,
             hp: cfg.hp,
@@ -367,18 +380,23 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const rect = canvas.getBoundingClientRect();
     rtsCam.handleMouseMove(e.clientX, e.clientY, rect);
 
-    // Update Ghost Building Mesh
+    // Update Ghost Building Mesh with 10px Grid Snap
     if (placingBuildingType && ghostMeshRef.current) {
       const hit = rtsCam.getGroundIntersection(e.clientX, e.clientY, rect);
       if (hit) {
         const cfg = BUILDING_CONFIGS[placingBuildingType];
+        const snappedWorldX = Math.round((hit.x * 10) / 10) * 10;
+        const snappedWorldY = Math.round((hit.z * 10) / 10) * 10;
+        const snap3dX = snappedWorldX * 0.1;
+        const snap3dZ = snappedWorldY * 0.1;
+
         ghostMeshRef.current.visible = true;
         ghostMeshRef.current.scale.set(cfg.width * 0.1, 4.0, cfg.height * 0.1);
-        ghostMeshRef.current.position.set(hit.x, 2.0, hit.z);
+        ghostMeshRef.current.position.set(snap3dX, 2.0, snap3dZ);
 
         // Check placement validity
-        const simX = hit.x * 10;
-        const simY = hit.z * 10;
+        const simX = snappedWorldX;
+        const simY = snappedWorldY;
         const canAfford = credits >= cfg.cost;
         const outOfBounds = simX < 80 || simX > WORLD_WIDTH - 80 || simY < 80 || simY > WORLD_HEIGHT - 80;
 
@@ -406,8 +424,11 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
         const isValid = canAfford && !outOfBounds && !overlapsBuilding && !inRiver;
         ghostValidRef.current = isValid;
 
-        const gMat = ghostMeshRef.current.material as THREE.MeshBasicMaterial;
-        gMat.color.setHex(isValid ? 0x22c55e : 0xef4444);
+        ghostMeshRef.current.traverse((child: any) => {
+          if (child.material) {
+            child.material.color.setHex(isValid ? 0x10b981 : 0xef4444);
+          }
+        });
       }
     }
 
@@ -469,6 +490,12 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           } else {
             // Target enemy with currently selected units
             if (selectedUnits.length > 0) {
+              if (moveMarkerRef.current) {
+                moveMarkerRef.current.position.set(clickedUnit.x * 0.1, 0.12, clickedUnit.y * 0.1);
+                (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
+                moveMarkerRef.current.visible = true;
+                moveMarkerTimer.current = 0.65;
+              }
               setUnits(prev =>
                 prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: clickedUnit.x, targetY: clickedUnit.y } : u))
               );
@@ -481,9 +508,27 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             return wx >= b.x && wx <= b.x + b.width && wy >= b.y && wy <= b.y + b.height;
           });
 
-          if (clickedBuilding && clickedBuilding.team === 'player') {
-            setSelectedBuilding(clickedBuilding);
-            setSelectedUnits([]);
+          if (clickedBuilding) {
+            if (clickedBuilding.team === 'player') {
+              setSelectedBuilding(clickedBuilding);
+              setSelectedUnits([]);
+            } else {
+              // Target enemy building with currently selected units
+              if (selectedUnits.length > 0) {
+                const bCenterX = clickedBuilding.x + clickedBuilding.width / 2;
+                const bCenterY = clickedBuilding.y + clickedBuilding.height / 2;
+                if (moveMarkerRef.current) {
+                  moveMarkerRef.current.position.set(bCenterX * 0.1, 0.12, bCenterY * 0.1);
+                  (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
+                  moveMarkerRef.current.visible = true;
+                  moveMarkerTimer.current = 0.65;
+                }
+                setUnits(prev =>
+                  prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: bCenterX, targetY: bCenterY } : u))
+                );
+                audio3DRef.current.speak('attack', faction);
+              }
+            }
           } else {
             // Deselect all
             setSelectedUnits([]);
@@ -548,9 +593,33 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const worldX = hit.x * 10;
     const worldY = hit.z * 10;
 
-    // Show Right-Click Move Marker in 3D
+    // Check if right-clicked on an enemy unit or building
+    const enemyUnit = units.find(u => u.team === 'enemy' && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
+    const enemyBuilding = buildings.find(b => b.team === 'enemy' && worldX >= b.x && worldX <= b.x + b.width && worldY >= b.y && worldY <= b.y + b.height);
+
+    if (enemyUnit || enemyBuilding) {
+      const tx = enemyUnit ? enemyUnit.x : (enemyBuilding!.x + enemyBuilding!.width / 2);
+      const ty = enemyUnit ? enemyUnit.y : (enemyBuilding!.y + enemyBuilding!.height / 2);
+
+      // Show RED attack marker
+      if (moveMarkerRef.current) {
+        moveMarkerRef.current.position.set(tx * 0.1, 0.12, ty * 0.1);
+        (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
+        moveMarkerRef.current.visible = true;
+        moveMarkerTimer.current = 0.7;
+      }
+
+      setUnits(prev =>
+        prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: tx, targetY: ty } : u))
+      );
+      audio3DRef.current.speak('attack', faction);
+      return;
+    }
+
+    // Show GREEN move waypoint marker in 3D
     if (moveMarkerRef.current) {
       moveMarkerRef.current.position.set(hit.x, 0.12, hit.z);
+      (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0x10b981);
       moveMarkerRef.current.visible = true;
       moveMarkerTimer.current = 0.55;
     }
