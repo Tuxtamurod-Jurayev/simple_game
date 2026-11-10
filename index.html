@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Command & Conquer: Mini-Generals (2-Bosqich)</title>
+  <title>Command & Conquer: Generals - Advanced RTS</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,8 +13,8 @@
     }
 
     body {
-      background-color: #0b0f0b;
-      color: #e0e0e0;
+      background-color: #080d09;
+      color: #e2e8e2;
       font-family: 'Consolas', 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
@@ -22,44 +22,83 @@
       justify-content: center;
       min-height: 100vh;
       overflow-x: hidden;
-      padding: 10px;
+      padding: 8px;
     }
 
+    /* Harbiy yuqori sarlavha */
     header {
+      width: 1024px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 6px;
-      text-align: center;
+      padding: 4px 6px;
+      border-bottom: 2px solid #233b26;
     }
 
     h1 {
-      font-size: 1.35rem;
-      color: #52c457;
+      font-size: 1.25rem;
+      color: #55d45c;
       letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(82, 196, 87, 0.4);
       text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(85, 212, 92, 0.45);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    /* Asosiy UI holat paneli */
+    .badge-rts {
+      background: #17331a;
+      color: #92f099;
+      border: 1px solid #3c7d42;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      border-radius: 3px;
+      letter-spacing: 1px;
+    }
+
+    .audio-toggle-btn {
+      background: #152917;
+      border: 1px solid #39663b;
+      color: #ffd152;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .audio-toggle-btn:hover {
+      background: #254a29;
+      color: #ffffff;
+    }
+
+    /* Asosiy Taktik UI panel */
     #ui-panel {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: 1000px;
-      background: linear-gradient(180deg, #182218 0%, #0d140e 100%);
-      padding: 8px 18px;
+      width: 1024px;
+      background: linear-gradient(180deg, #182619 0%, #0d160e 100%);
+      padding: 8px 16px;
       border-radius: 6px 6px 0 0;
-      border: 2px solid #2e4a30;
+      border: 2px solid #28442a;
       border-bottom: none;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
     }
 
     .stat-group {
       display: flex;
-      gap: 20px;
+      gap: 22px;
       align-items: center;
     }
 
     .stat-item {
-      color: #9ab39c;
+      color: #8da68f;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .stat-item span {
@@ -69,91 +108,196 @@
 
     .stat-money span {
       color: #ffd152;
-      text-shadow: 0 0 6px rgba(255, 209, 82, 0.5);
+      text-shadow: 0 0 8px rgba(255, 209, 82, 0.6);
+      font-size: 1.05rem;
     }
 
     .stat-energy span {
-      color: #5cc8ff;
+      color: #55c8ff;
     }
 
     .stat-enemy span {
       color: #ff5252;
-      text-shadow: 0 0 6px rgba(255, 82, 82, 0.5);
+      text-shadow: 0 0 8px rgba(255, 82, 82, 0.6);
     }
 
-    #selected-info {
-      color: #a4f4a7;
-      background: #101c12;
-      padding: 2px 8px;
-      border: 1px solid #29472c;
+    #selected-badge {
+      color: #92f099;
+      background: #112113;
+      padding: 3px 10px;
+      border: 1px solid #2f5933;
       border-radius: 4px;
+      font-size: 0.85rem;
     }
 
     /* O'yin maydoni konteyneri */
     #game-container {
       position: relative;
-      width: 1000px;
-      height: 600px;
-      border: 2px solid #2e4a30;
+      width: 1024px;
+      height: 620px;
+      border: 2px solid #28442a;
       border-radius: 0 0 6px 6px;
       overflow: hidden;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9);
+      background-color: #121c13;
     }
 
     canvas {
       display: block;
-      background-color: #0f1c0f;
+      background-color: #152216;
       cursor: crosshair;
     }
 
-    /* Pastki harbiy buyruqlar menyusi */
-    #build-menu {
+    /* Radar / Minimap overlay */
+    #radar-container {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 150px;
+      height: 110px;
+      background: rgba(10, 20, 11, 0.85);
+      border: 2px solid #36663a;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+    }
+
+    #radarCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .radar-label {
+      position: absolute;
+      bottom: 2px;
+      left: 4px;
+      font-size: 9px;
+      color: #55d45c;
+      letter-spacing: 1px;
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    /* Pastki harbiy buyruqlar va profil paneli */
+    #command-hud {
       display: flex;
-      gap: 10px;
-      width: 1000px;
+      gap: 12px;
+      width: 1024px;
       margin-top: 8px;
       justify-content: space-between;
+      align-items: stretch;
     }
 
-    .action-group {
+    /* Tanlangan obyekt kartasi (Generals uslubidagi portret) */
+    #entity-card {
+      width: 280px;
+      background: linear-gradient(180deg, #142115 0%, #0c140d 100%);
+      border: 1px solid #2d4f2f;
+      border-radius: 4px;
+      padding: 6px 12px;
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 12px;
     }
 
-    button {
-      background: #172b19;
-      color: #8ce093;
-      border: 1px solid #3c6e40;
-      padding: 8px 14px;
+    #card-icon {
+      width: 48px;
+      height: 48px;
+      background: #1b2e1c;
+      border: 1px solid #437a47;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    #card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.82rem;
+    }
+
+    #card-title {
+      font-weight: bold;
+      color: #92f099;
+    }
+
+    #card-hp-bar {
+      width: 180px;
+      height: 6px;
+      background: #3a1515;
+      border: 1px solid #000;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    #card-hp-fill {
+      width: 100%;
+      height: 100%;
+      background: #2ecc71;
+      transition: width 0.15s ease;
+    }
+
+    /* Tugmalar guruhi */
+    #action-buttons {
+      display: flex;
+      flex: 1;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button.btn-build {
+      background: #172c19;
+      color: #97ebb0;
+      border: 1px solid #3c7040;
+      padding: 8px 12px;
       cursor: pointer;
       font-family: inherit;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: bold;
       border-radius: 4px;
       transition: all 0.15s ease;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 4px;
+      min-width: 130px;
     }
 
-    button:hover {
-      background: #274d2b;
+    button.btn-build:hover {
+      background: #254a29;
       color: #ffffff;
-      border-color: #5db363;
-      box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+      border-color: #61b867;
+      box-shadow: 0 0 10px rgba(85, 212, 92, 0.4);
     }
 
-    button:active {
+    button.btn-build:active {
       transform: translateY(1px);
     }
 
-    button kbd {
+    button.btn-build .btn-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    button.btn-build kbd {
       background: #0d170e;
       color: #ffd152;
-      border: 1px solid #3c6e40;
+      border: 1px solid #3c7040;
       padding: 1px 5px;
       border-radius: 3px;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
+    }
+
+    button.btn-build .btn-cost {
+      font-size: 0.75rem;
+      color: #ffd152;
     }
 
     /* Harbiy status xabarlari (Toast) */
@@ -161,8 +305,8 @@
       position: absolute;
       bottom: 12px;
       left: 14px;
-      background: rgba(10, 18, 11, 0.9);
-      border: 1px solid #355837;
+      background: rgba(10, 18, 11, 0.92);
+      border: 1px solid #39633c;
       padding: 6px 14px;
       border-radius: 4px;
       font-size: 13px;
@@ -175,7 +319,7 @@
     .toast-danger {
       color: #ff6b6b !important;
       border-color: #9c2e2e !important;
-      background: rgba(38, 11, 11, 0.95) !important;
+      background: rgba(40, 10, 10, 0.95) !important;
     }
 
     .toast-success {
@@ -192,23 +336,23 @@
       transform: translate(-50%, -50%);
       background: rgba(8, 14, 9, 0.96);
       border: 3px solid #ffd152;
-      padding: 25px 45px;
+      padding: 26px 48px;
       border-radius: 8px;
       text-align: center;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
       z-index: 50;
     }
 
     #game-over-title {
-      font-size: 2rem;
+      font-size: 2.2rem;
       margin-bottom: 10px;
       letter-spacing: 3px;
     }
 
     #game-over-desc {
-      font-size: 1rem;
+      font-size: 1.05rem;
       color: #c9d6ca;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .restart-btn {
@@ -216,69 +360,243 @@
       color: #fff;
       font-size: 1rem;
       padding: 10px 24px;
-      margin: 0 auto;
+      border: 1px solid #488a4c;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: inherit;
+      font-weight: bold;
+    }
+
+    .restart-btn:hover {
+      background: #316635;
+      box-shadow: 0 0 12px rgba(85, 212, 92, 0.5);
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Command & Conquer: Mini-Generals (Advanced RTS Engine)</h1>
+    <h1>
+      <span>Command & Conquer: Generals</span>
+      <span class="badge-rts">v2.5 Tactical Engine</span>
+    </h1>
+    <button class="audio-toggle-btn" id="audio-btn" onclick="toggleAudio()">🔊 Ovoz: Yoqilgan</button>
   </header>
 
   <!-- UI Taktik Panel -->
   <div id="ui-panel">
     <div class="stat-group">
-      <div class="stat-item stat-money">Mablag': <span id="money">1500</span>$</div>
-      <div class="stat-item stat-energy">Energiya: <span id="energy">15</span>/15</div>
-      <div class="stat-item">Tanlangan: <span id="selected-info">Yo'q</span></div>
+      <div class="stat-item stat-money">Mablag': <span id="money">$1500</span></div>
+      <div class="stat-item stat-energy">Energiya: <span id="energy">15/15</span></div>
+      <div class="stat-item">Tanlangan: <span id="selected-badge">Hech narsa</span></div>
     </div>
     <div class="stat-group">
-      <div class="stat-item stat-enemy">Dushman HQ: <span id="enemy-hq-hp">1500</span> HP</div>
+      <div class="stat-item stat-enemy">Dushman HQ: <span id="enemy-hq-hp">1500 HP</span></div>
     </div>
   </div>
 
   <!-- O'yin oynasi -->
   <div id="game-container">
-    <canvas id="gameCanvas" width="1000" height="600"></canvas>
-    <div id="status-toast">Operatsiya boshlandi. Resurslarni to'plashni boshlang!</div>
+    <canvas id="gameCanvas" width="1024" height="620"></canvas>
+
+    <!-- Radar / Minimap -->
+    <div id="radar-container">
+      <canvas id="radarCanvas" width="150" height="110"></canvas>
+      <div class="radar-label">TACTICAL RADAR</div>
+    </div>
+
+    <!-- Status xabarlari -->
+    <div id="status-toast">Baza faollashdi. Resurs yig'ing va dushman bazasini yo'q qiling!</div>
 
     <!-- O'yin tugash ekrani -->
     <div id="game-over-banner">
       <h2 id="game-over-title">G'ALABA!</h2>
-      <p id="game-over-desc">Dushman bazasi butunlay yakson qilindi.</p>
+      <p id="game-over-desc">Dushman bazasi yo'q qilindi! Siz g'alaba qozondingiz.</p>
       <button class="restart-btn" onclick="restartGame()">Qaytadan o'ynash</button>
     </div>
   </div>
 
-  <!-- Buyruqlar menyusi -->
-  <div id="build-menu">
-    <div class="action-group">
-      <button onclick="buildStructure('Barracks')"><kbd>Q</kbd> Kazarma (500$)</button>
-      <button onclick="buildStructure('WarFactory')"><kbd>W</kbd> Zavod (800$)</button>
+  <!-- Generals buyruqlar paneli (Command HUD) -->
+  <div id="command-hud">
+    <!-- Tanlangan obyekt kartasi -->
+    <div id="entity-card">
+      <div id="card-icon">🏛️</div>
+      <div id="card-details">
+        <div id="card-title">HQ (Bosh bino)</div>
+        <div id="card-hp-text">2000 / 2000 HP</div>
+        <div id="card-hp-bar">
+          <div id="card-hp-fill"></div>
+        </div>
+      </div>
     </div>
-    <div class="action-group">
-      <button onclick="trainUnit('Worker')"><kbd>E</kbd> Ishchi mashina (200$)</button>
-      <button onclick="trainUnit('Ranger')"><kbd>R</kbd> Mergan askar (150$)</button>
-      <button onclick="trainUnit('Tank')"><kbd>T</kbd> Jangovar Tank (600$)</button>
+
+    <!-- Qurilish va ishlab chiqarish tugmalari -->
+    <div id="action-buttons">
+      <button class="btn-build" onclick="buildStructure('Barracks')">
+        <span class="btn-label"><kbd>Q</kbd> Kazarma</span>
+        <span class="btn-cost">$500</span>
+      </button>
+      <button class="btn-build" onclick="buildStructure('WarFactory')">
+        <span class="btn-label"><kbd>W</kbd> Zavod</span>
+        <span class="btn-cost">$800</span>
+      </button>
+      <button class="btn-build" onclick="trainUnit('Worker')">
+        <span class="btn-label"><kbd>E</kbd> Ishchi Mashina</span>
+        <span class="btn-cost">$200</span>
+      </button>
+      <button class="btn-build" onclick="trainUnit('Ranger')">
+        <span class="btn-label"><kbd>R</kbd> Mergan Askar</span>
+        <span class="btn-cost">$150</span>
+      </button>
+      <button class="btn-build" onclick="trainUnit('Tank')">
+        <span class="btn-label"><kbd>T</kbd> Crusader Tank</span>
+        <span class="btn-cost">$600</span>
+      </button>
     </div>
   </div>
 
   <script>
-    // ==========================================
-    // 1. TIZIM VA O'YIN HOLATI (Game State)
-    // ==========================================
+    // =========================================================================
+    // 1. PROCEDURAL SOUND ENGINE (Generals Web Audio FX - Nol tashqi fayl)
+    // =========================================================================
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-btn');
+      btn.textContent = audioEnabled ? '🔊 Ovoz: Yoqilgan' : '🔇 Ovoz: O\'chirilgan';
+      if (audioEnabled) initAudio();
+    }
+
+    function playSound(type) {
+      if (!audioEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'cannon') {
+        // Tank zambaragi zarbasi (Og'ir portlash va sub-bass zarba)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + 0.35);
+
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+
+        // Qo'shimcha shovqin portlashi
+        playNoise(0.25, 0.4, 250);
+      } else if (type === 'rifle') {
+        // Avtomat o'qi (Mergan)
+        playNoise(0.06, 0.2, 1200);
+      } else if (type === 'explosion') {
+        // Katta portlash
+        playNoise(0.5, 0.7, 180);
+      } else if (type === 'select') {
+        // Harbiy ratsiya signali
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1180, now + 0.04);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'cash') {
+        // Resurs olib kelinganda pul ovozi
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1046, now);
+        osc.frequency.setValueAtTime(1318, now + 0.07);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } else if (type === 'build') {
+        // Qurilish buyrug'i
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+    }
+
+    function playNoise(duration, volume, cutoffFreq) {
+      if (!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * duration;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(cutoffFreq, audioCtx.currentTime);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      whiteNoise.start();
+    }
+
+    // =========================================================================
+    // 2. O'YIN TIZIMI VA HOLAT (Game State)
+    // =========================================================================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const radarCanvas = document.getElementById('radarCanvas');
+    const radarCtx = radarCanvas.getContext('2d');
 
     const moneyEl = document.getElementById('money');
     const energyEl = document.getElementById('energy');
-    const selectedEl = document.getElementById('selected-info');
+    const selectedBadge = document.getElementById('selected-badge');
     const enemyHqEl = document.getElementById('enemy-hq-hp');
     const statusToast = document.getElementById('status-toast');
     const gameOverBanner = document.getElementById('game-over-banner');
     const gameOverTitle = document.getElementById('game-over-title');
     const gameOverDesc = document.getElementById('game-over-desc');
+
+    const cardIcon = document.getElementById('card-icon');
+    const cardTitle = document.getElementById('card-title');
+    const cardHpText = document.getElementById('card-hp-text');
+    const cardHpFill = document.getElementById('card-hp-fill');
 
     let isGameOver = false;
     let toastTimer = null;
@@ -292,7 +610,7 @@
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
         statusToast.className = '';
-      }, 3000);
+      }, 3200);
     }
 
     let gameState = {
@@ -309,10 +627,12 @@
     let particles = [];
     let clickMarkers = [];
     let floatingTexts = [];
+    let treadTracks = [];
+    let burningWrecks = [];
 
-    // ==========================================
-    // 2. BOSHLANG'ICH XARITA SOZLAMLARI
-    // ==========================================
+    // =========================================================================
+    // 3. BOSHLANG'ICH XARITA VA OBYEKTLAR
+    // =========================================================================
     function initGame() {
       isGameOver = false;
       gameOverBanner.style.display = 'none';
@@ -321,46 +641,50 @@
       gameState.energy = 15;
       gameState.selectedEntity = null;
 
-      // Binolar
+      // 1. O'yinchi va Dushman HQ
       buildings = [
         {
-          id: 1, type: 'HQ', team: 'player', name: 'Bosh Bino (HQ)',
-          x: 70, y: 240, width: 90, height: 80,
-          hp: 2000, maxHp: 2000, color: '#27ae60'
+          id: 1, type: 'HQ', team: 'player', name: 'USA Command Center',
+          icon: '🏛️', x: 80, y: 245, width: 105, height: 95,
+          hp: 2200, maxHp: 2200, radarAngle: 0
         },
         {
-          id: 2, type: 'EnemyHQ', team: 'enemy', name: 'Dushman Bosh Binasi',
-          x: 840, y: 240, width: 90, height: 80,
-          hp: 1500, maxHp: 1500, color: '#c0392b'
+          id: 2, type: 'EnemyHQ', team: 'enemy', name: 'GLA Command Outpost',
+          icon: '🏰', x: 840, y: 245, width: 105, height: 95,
+          hp: 1800, maxHp: 1800, radarAngle: 0
         }
       ];
 
-      // Resurs manbai (Supply Dock - markazda)
+      // 2. Supply Dock (Markaziy resurs zonasi)
       supplyDocks = [
-        { id: 1, x: 500, y: 280, radius: 35, supplies: 12000 }
+        {
+          id: 1, x: 512, y: 310, width: 110, height: 80,
+          supplies: 15000, maxSupplies: 15000,
+          craneAngle: 0.3
+        }
       ];
 
-      // Boshlang'ich birliklar
+      // 3. Boshlang'ich Birliklar
       units = [
         // O'yinchi birliklari
         {
-          id: 101, type: 'Worker', team: 'player', name: 'Ishchi Mashina',
-          x: 180, y: 260, radius: 12, hp: 150, maxHp: 150, speed: 2.2,
+          id: 101, type: 'Worker', team: 'player', name: 'Supply Truck (Yuk mashinasi)',
+          icon: '🚛', x: 215, y: 265, radius: 15, hp: 200, maxHp: 200, speed: 2.2,
           targetX: null, targetY: null, carrying: 0, range: 0, damage: 0,
-          harvestCooldown: 0, angle: 0
+          hullAngle: 0, turretAngle: 0, recoil: 0, walkPhase: 0
         },
         {
-          id: 102, type: 'Tank', team: 'player', name: 'O\'yinchi Tanki',
-          x: 180, y: 320, radius: 15, hp: 450, maxHp: 450, speed: 1.5,
-          targetX: null, targetY: null, range: 135, damage: 25, lastShot: 0,
-          angle: 0
+          id: 102, type: 'Tank', team: 'player', name: 'Crusader Tank',
+          icon: '🛡️', x: 220, y: 340, radius: 18, hp: 500, maxHp: 500, speed: 1.5,
+          targetX: null, targetY: null, range: 150, damage: 32, lastShot: 0,
+          hullAngle: 0, turretAngle: 0, recoil: 0, walkPhase: 0
         },
         // Dushman birliklari
         {
-          id: 201, type: 'Tank', team: 'enemy', name: 'Dushman Tanki',
-          x: 770, y: 280, radius: 15, hp: 400, maxHp: 400, speed: 1.3,
-          targetX: null, targetY: null, range: 135, damage: 20, lastShot: 0,
-          angle: Math.PI
+          id: 201, type: 'Tank', team: 'enemy', name: 'Scorpion Tank',
+          icon: '⚔️', x: 770, y: 290, radius: 18, hp: 440, maxHp: 440, speed: 1.4,
+          targetX: null, targetY: null, range: 145, damage: 24, lastShot: 0,
+          hullAngle: Math.PI, turretAngle: Math.PI, recoil: 0, walkPhase: 0
         }
       ];
 
@@ -368,117 +692,122 @@
       particles = [];
       clickMarkers = [];
       floatingTexts = [];
+      treadTracks = [];
+      burningWrecks = [];
 
-      notify("Baza tayyor. Resurs yig'ing va armiya tuzing!");
+      notify("Operatsiya faollashtirildi! Supply Truck avtomatik resurs to'plashni boshlaydi.");
       updateUI();
     }
 
     function updateUI() {
-      moneyEl.textContent = Math.floor(gameState.money);
+      moneyEl.textContent = `$${Math.floor(gameState.money)}`;
       energyEl.textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-      if (gameState.selectedEntity) {
-        selectedEl.textContent = `${gameState.selectedEntity.name || gameState.selectedEntity.type} [${Math.max(0, Math.floor(gameState.selectedEntity.hp))} HP]`;
-      } else {
-        selectedEl.textContent = "Yo'q";
-      }
 
       const enemyHQ = buildings.find(b => b.type === 'EnemyHQ');
-      enemyHqEl.textContent = enemyHQ ? Math.max(0, Math.floor(enemyHQ.hp)) : 0;
+      enemyHqEl.textContent = enemyHQ ? `${Math.max(0, Math.floor(enemyHQ.hp))} HP` : '0 HP';
+
+      if (gameState.selectedEntity) {
+        const ent = gameState.selectedEntity;
+        selectedBadge.textContent = ent.name;
+        cardTitle.textContent = ent.name;
+        cardIcon.textContent = ent.icon || (ent.type === 'Tank' ? '🛡️' : '🎖️');
+        cardHpText.textContent = `${Math.max(0, Math.floor(ent.hp))} / ${ent.maxHp} HP`;
+        const pct = Math.max(0, (ent.hp / ent.maxHp) * 100);
+        cardHpFill.style.width = `${pct}%`;
+        cardHpFill.style.background = pct > 45 ? '#2ecc71' : (pct > 20 ? '#f39c12' : '#e74c3c');
+      } else {
+        selectedBadge.textContent = "Hech narsa";
+        cardTitle.textContent = "Nishon yo'q";
+        cardIcon.textContent = "📡";
+        cardHpText.textContent = "-- / --";
+        cardHpFill.style.width = '0%';
+      }
     }
 
     function addFloatingText(x, y, text, color = '#ffd152') {
-      floatingTexts.push({ x, y, text, color, alpha: 1.0, vy: -1.2 });
+      floatingTexts.push({ x, y, text, color, alpha: 1.0, vy: -1.0 });
     }
 
-    function createExplosion(x, y, count = 25, isBig = false) {
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = (Math.random() * 4 + 1) * (isBig ? 1.6 : 1);
-        particles.push({
-          x: x, y: y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          size: Math.random() * 3 + 2,
-          color: Math.random() > 0.5 ? '#ff9800' : (Math.random() > 0.3 ? '#f44336' : '#ffeb3b'),
-          alpha: 1.0,
-          fade: Math.random() * 0.03 + 0.02
-        });
-      }
-    }
-
-    // ==========================================
-    // 3. IQTISODIYOT, QURILISH VA ISHLAB CHIQARISH
-    // ==========================================
-
+    // =========================================================================
+    // 4. QURILISH VA ISHLAB CHIQARISH (Production)
+    // =========================================================================
     function buildStructure(type) {
       if (isGameOver) return;
+      initAudio();
+
       let cost = 0;
       let name = '';
-      let color = '';
-      let width = 65, height = 65;
-      let hp = 500;
+      let icon = '';
+      let w = 85, h = 80;
+      let hp = 700;
 
       if (type === 'Barracks') {
         cost = 500;
-        name = 'Kazarma (Barracks)';
-        color = '#d35400';
-        hp = 600;
+        name = 'Barracks (Kazarma)';
+        icon = '⛺';
+        hp = 700;
+        w = 90; h = 75;
       } else if (type === 'WarFactory') {
         cost = 800;
-        name = 'Zavod (War Factory)';
-        color = '#7f8c8d';
-        width = 80; height = 70;
-        hp = 900;
+        name = 'War Factory (Zavod)';
+        icon = '🏭';
+        hp = 1100;
+        w = 110; h = 88;
       }
 
       if (gameState.money < cost) {
-        notify(`Mablag' yetarli emas! ${name} uchun $${cost} lozim.`, 'danger');
+        notify(`Mablag' yetarli emas! ${name} uchun $${cost} zarur.`, 'danger');
         return;
       }
 
       gameState.money -= cost;
 
-      // HQ yaqinida qulay joyga qurish
+      // HQ atrofida joylashtirish
       const px = 180 + Math.random() * 120;
-      const py = 120 + Math.random() * 300;
+      const py = 120 + Math.random() * 320;
 
       buildings.push({
         id: Date.now(),
         type: type,
         team: 'player',
         name: name,
+        icon: icon,
         x: px, y: py,
-        width: width, height: height,
-        hp: hp, maxHp: hp,
-        color: color
+        width: w, height: h,
+        hp: hp, maxHp: hp
       });
 
-      createExplosion(px + width / 2, py + height / 2, 15);
+      playSound('build');
+      createExplosion(px + w / 2, py + h / 2, 18, false);
       notify(`${name} qurildi! (-$${cost})`, 'success');
       updateUI();
     }
 
     function trainUnit(type) {
       if (isGameOver) return;
+      initAudio();
+
       let cost = 0;
       let name = '';
+      let icon = '';
 
       if (type === 'Worker') {
         cost = 200;
-        name = 'Ishchi Mashina';
+        name = 'Supply Truck (Yuk mashinasi)';
+        icon = '🚛';
       } else if (type === 'Ranger') {
         cost = 150;
-        name = 'Mergan Askar';
-        // Kazarma borligini tekshirish
+        name = 'US Ranger (Mergan askar)';
+        icon = '🎖️';
         const hasBarracks = buildings.some(b => b.team === 'player' && b.type === 'Barracks');
         if (!hasBarracks) {
-          notify("Mergan chiqarish uchun avval Kazarma (Barracks) quring!", 'danger');
+          notify("Askar chiqarish uchun avval Kazarma (Barracks) quring!", 'danger');
           return;
         }
       } else if (type === 'Tank') {
         cost = 600;
-        name = 'Jangovar Tank';
-        // Zavod yoki HQ
+        name = 'Crusader Tank';
+        icon = '🛡️';
         const hasFactory = buildings.some(b => b.team === 'player' && (b.type === 'WarFactory' || b.type === 'HQ'));
         if (!hasFactory) {
           notify("Tank chiqarish uchun Baza yoki Zavod kerak!", 'danger');
@@ -493,18 +822,17 @@
 
       gameState.money -= cost;
 
-      // Ishlab chiqarish joyi
-      let spawnX = 170;
-      let spawnY = 270;
+      let sx = 180;
+      let sy = 280;
 
       if (type === 'Ranger') {
         const b = buildings.find(b => b.team === 'player' && b.type === 'Barracks') || buildings[0];
-        spawnX = b.x + b.width + 10;
-        spawnY = b.y + b.height / 2;
+        sx = b.x + b.width + 12;
+        sy = b.y + b.height / 2;
       } else if (type === 'Tank') {
         const f = buildings.find(b => b.team === 'player' && b.type === 'WarFactory') || buildings[0];
-        spawnX = f.x + f.width + 15;
-        spawnY = f.y + f.height / 2;
+        sx = f.x + f.width + 16;
+        sy = f.y + f.height / 2;
       }
 
       const newUnit = {
@@ -512,70 +840,77 @@
         type: type,
         team: 'player',
         name: name,
-        x: spawnX,
-        y: spawnY + (Math.random() * 30 - 15),
-        radius: type === 'Tank' ? 15 : (type === 'Worker' ? 12 : 9),
-        hp: type === 'Tank' ? 450 : (type === 'Worker' ? 150 : 120),
-        maxHp: type === 'Tank' ? 450 : (type === 'Worker' ? 150 : 120),
+        icon: icon,
+        x: sx,
+        y: sy + (Math.random() * 40 - 20),
+        radius: type === 'Tank' ? 18 : (type === 'Worker' ? 15 : 10),
+        hp: type === 'Tank' ? 500 : (type === 'Worker' ? 200 : 130),
+        maxHp: type === 'Tank' ? 500 : (type === 'Worker' ? 200 : 130),
         speed: type === 'Tank' ? 1.5 : (type === 'Worker' ? 2.2 : 1.9),
         targetX: null,
         targetY: null,
-        range: type === 'Tank' ? 135 : (type === 'Ranger' ? 110 : 0),
-        damage: type === 'Tank' ? 25 : (type === 'Ranger' ? 10 : 0),
+        range: type === 'Tank' ? 150 : (type === 'Ranger' ? 120 : 0),
+        damage: type === 'Tank' ? 32 : (type === 'Ranger' ? 12 : 0),
         lastShot: 0,
         carrying: 0,
-        harvestCooldown: 0,
-        angle: 0
+        hullAngle: 0,
+        turretAngle: 0,
+        recoil: 0,
+        walkPhase: 0
       };
 
       units.push(newUnit);
-      notify(`${name} tayyorlandi! (-$${cost})`, 'success');
+      playSound('select');
+      notify(`${name} jangga tayyor! (-$${cost})`, 'success');
       updateUI();
     }
 
-    // ==========================================
-    // 4. DUSHMAN RAQIB (AI Taktikasi)
-    // ==========================================
-    let aiTimer = 0;
+    // =========================================================================
+    // 5. SUN'IY INTELLEKT (Enemy AI Raqib)
+    // =========================================================================
+    let aiInterval = 0;
     function updateAI(dt) {
       if (isGameOver) return;
-      aiTimer += dt;
+      aiInterval += dt;
 
-      // Har 4.5 sekundda dushman harakat qiladi
-      if (aiTimer > 4500) {
-        aiTimer = 0;
+      if (aiInterval > 4200) {
+        aiInterval = 0;
 
         const enemyHQ = buildings.find(b => b.team === 'enemy' && b.type === 'EnemyHQ');
         if (!enemyHQ) return;
 
         const enemyUnits = units.filter(u => u.team === 'enemy');
 
-        // Agar dushmanda 6 tadan kam birlik bo'lsa, yangi tank yoki askar chiqaradi
-        if (enemyUnits.length < 6) {
+        // Birliklar soni 7 tadan kam bo'lsa yangi tank yoki GLA askar chiqaradi
+        if (enemyUnits.length < 7) {
           const isTank = Math.random() > 0.35;
-          const newEnemy = {
+          const newUnit = {
             id: Date.now() + Math.random(),
             type: isTank ? 'Tank' : 'Ranger',
             team: 'enemy',
-            name: isTank ? 'Dushman Tanki' : 'Dushman Asqari',
-            x: enemyHQ.x - 20,
+            name: isTank ? 'GLA Scorpion Tank' : 'GLA Rebel Soldier',
+            icon: isTank ? '⚔️' : '💀',
+            x: enemyHQ.x - 25,
             y: enemyHQ.y + Math.random() * enemyHQ.height,
-            radius: isTank ? 15 : 9,
-            hp: isTank ? 400 : 110,
-            maxHp: isTank ? 400 : 110,
-            speed: isTank ? 1.3 : 1.7,
+            radius: isTank ? 18 : 10,
+            hp: isTank ? 440 : 120,
+            maxHp: isTank ? 440 : 120,
+            speed: isTank ? 1.4 : 1.8,
             targetX: null,
             targetY: null,
-            range: isTank ? 135 : 105,
-            damage: isTank ? 20 : 8,
+            range: isTank ? 145 : 110,
+            damage: isTank ? 25 : 10,
             lastShot: 0,
             carrying: 0,
-            angle: Math.PI
+            hullAngle: Math.PI,
+            turretAngle: Math.PI,
+            recoil: 0,
+            walkPhase: 0
           };
-          units.push(newEnemy);
+          units.push(newUnit);
         }
 
-        // Barcha dushman jangchilariga hujum buyrug'i berish
+        // Taktik Hujum uyushtirish (Eng yaqin nishonni qidirish)
         const playerTargets = [
           ...buildings.filter(b => b.team === 'player'),
           ...units.filter(u => u.team === 'player')
@@ -583,36 +918,53 @@
 
         if (playerTargets.length > 0) {
           units.filter(u => u.team === 'enemy').forEach(eu => {
-            // Eng yaqin nishonni qidirish
             let closest = null;
             let minDist = Infinity;
             playerTargets.forEach(pt => {
-              const d = Math.hypot(pt.x - eu.x, pt.y - eu.y);
+              const cx = pt.width ? pt.x + pt.width / 2 : pt.x;
+              const cy = pt.height ? pt.y + pt.height / 2 : pt.y;
+              const d = Math.hypot(cx - eu.x, cy - eu.y);
               if (d < minDist) {
                 minDist = d;
-                closest = pt;
+                closest = { x: cx, y: cy };
               }
             });
 
             if (closest) {
-              eu.targetX = closest.x + (closest.width ? closest.width / 2 : 0);
-              eu.targetY = closest.y + (closest.height ? closest.height / 2 : 0);
+              eu.targetX = closest.x;
+              eu.targetY = closest.y;
             }
           });
         }
       }
     }
 
-    // ==========================================
-    // 5. O'YIN YANGILANISHI (Update Loop)
-    // ==========================================
+    // =========================================================================
+    // 6. O'YIN MANTIQI VA UPDATE SIKLI
+    // =========================================================================
+    function createExplosion(x, y, count = 25, isBig = false) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = (Math.random() * 4 + 1.2) * (isBig ? 1.6 : 1);
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 4 + 2,
+          color: Math.random() > 0.4 ? '#ff9800' : (Math.random() > 0.2 ? '#f44336' : '#ffe600'),
+          alpha: 1.0,
+          fade: Math.random() * 0.025 + 0.015
+        });
+      }
+    }
+
     function updateGameLogic() {
       if (isGameOver) return;
 
       const playerHQ = buildings.find(b => b.team === 'player' && b.type === 'HQ');
       const enemyHQ = buildings.find(b => b.team === 'enemy' && b.type === 'EnemyHQ');
 
-      // G'alaba va Mag'lubiyat holatlarini tekshirish
+      // G'alaba / Mag'lubiyat holati
       if (!enemyHQ) {
         endGame(true);
         return;
@@ -622,8 +974,18 @@
         return;
       }
 
-      // 1. Birliklar harakati, resurs yig'ish va jang
+      // Radar antennalarini aylantirish
+      buildings.forEach(b => {
+        if (b.radarAngle !== undefined) {
+          b.radarAngle += 0.04;
+        }
+      });
+
+      // 1. Birliklar harakati, resurs tashish va jang
       units.forEach(unit => {
+        // Zambarak qaytishi (Recoil animatsiyasi)
+        if (unit.recoil > 0) unit.recoil -= 0.5;
+
         // Harakat
         if (unit.targetX !== null && unit.targetY !== null) {
           const dx = unit.targetX - unit.x;
@@ -631,9 +993,22 @@
           const dist = Math.hypot(dx, dy);
 
           if (dist > unit.speed) {
-            unit.angle = Math.atan2(dy, dx);
+            unit.hullAngle = Math.atan2(dy, dx);
             unit.x += (dx / dist) * unit.speed;
             unit.y += (dy / dist) * unit.speed;
+            unit.walkPhase = (unit.walkPhase || 0) + 0.25;
+
+            // Tank yoki yuk mashinasi harakatlanganda yerda iz qoldiradi
+            if (unit.type === 'Tank' || unit.type === 'Worker') {
+              if (Math.random() < 0.25) {
+                treadTracks.push({
+                  x: unit.x, y: unit.y,
+                  angle: unit.hullAngle,
+                  isTank: unit.type === 'Tank',
+                  alpha: 0.35
+                });
+              }
+            }
           } else {
             unit.x = unit.targetX;
             unit.y = unit.targetY;
@@ -642,42 +1017,44 @@
           }
         }
 
-        // ISHCHI (Worker) - To'liq avtonom resurs aylanishi
+        // ISHCHI (Supply Truck) - Avtomatik Iqtisodiyot Sikli
         if (unit.type === 'Worker' && unit.team === 'player') {
           const dock = supplyDocks[0];
           const hq = playerHQ;
 
           if (dock && hq) {
-            const distToDock = Math.hypot(unit.x - dock.x, unit.y - dock.y);
+            const dockCenterX = dock.x + dock.width / 2;
+            const dockCenterY = dock.y + dock.height / 2;
             const hqCenterX = hq.x + hq.width / 2;
             const hqCenterY = hq.y + hq.height / 2;
+
+            const distToDock = Math.hypot(unit.x - dockCenterX, unit.y - dockCenterY);
             const distToHQ = Math.hypot(unit.x - hqCenterX, unit.y - hqCenterY);
 
-            // Resurs tashiyotgan bo'lmasa -> Dock tomonga yo'naltirish
+            // Resurs yo'q bo'lsa -> Dock tomon boradi
             if (unit.carrying === 0) {
-              if (distToDock < dock.radius + 15) {
-                // Kon ustida resurs yuklash
+              if (distToDock < 65) {
                 if (dock.supplies > 0) {
                   unit.carrying = 100;
                   dock.supplies -= 100;
-                  addFloatingText(unit.x, unit.y - 10, "+100$ Quti", "#ffd152");
+                  addFloatingText(unit.x, unit.y - 12, "+100$ Supply Crate", "#ffd152");
                   unit.targetX = hqCenterX;
                   unit.targetY = hqCenterY;
                 }
               } else if (unit.targetX === null) {
-                // Avtomatik ravishda kon tomon yo'l olish
-                unit.targetX = dock.x;
-                unit.targetY = dock.y;
+                unit.targetX = dockCenterX;
+                unit.targetY = dockCenterY;
               }
             } else {
-              // Resurs yuklangan bo'lsa -> Bazaga topshirish
-              if (distToHQ < 55) {
+              // Resurs bor bo'lsa -> HQ ga topshiradi
+              if (distToHQ < 65) {
                 gameState.money += unit.carrying;
-                addFloatingText(hqCenterX, hq.y - 15, `+${unit.carrying}$`, "#2ecc71");
+                addFloatingText(hqCenterX, hq.y - 15, `+$${unit.carrying}`, "#2ecc71");
+                playSound('cash');
                 unit.carrying = 0;
-                // Yana konga qaytish
-                unit.targetX = dock.x;
-                unit.targetY = dock.y;
+                // Yana konga qaytadi
+                unit.targetX = dockCenterX;
+                unit.targetY = dockCenterY;
                 updateUI();
               } else if (unit.targetX === null) {
                 unit.targetX = hqCenterX;
@@ -687,14 +1064,14 @@
           }
         }
 
-        // JANG (Combat) - Masofadan avtomatik nishonga olish
+        // JANG (Combat) - Masofadan o'q uzish
         if (unit.range > 0) {
           const enemyTeam = unit.team === 'player' ? 'enemy' : 'player';
 
-          // Dushman birliklar
+          // 1. Yaqin atrofdagi dushman birliklar
           let target = units.find(u => u.team === enemyTeam && Math.hypot(u.x - unit.x, u.y - unit.y) <= unit.range);
 
-          // Agar dushman birlik topilmasa, dushman binolarini nishonga oladi!
+          // 2. Agar birlik bo'lmasa, dushman binolarini nishonga oladi
           if (!target) {
             target = buildings.find(b => {
               if (b.team !== enemyTeam) return false;
@@ -705,32 +1082,46 @@
           }
 
           if (target) {
-            // O'q uzish va burilish
             const tx = target.width ? target.x + target.width / 2 : target.x;
             const ty = target.height ? target.y + target.height / 2 : target.y;
-            unit.angle = Math.atan2(ty - unit.y, tx - unit.x);
+
+            // Minora nishonga qarab buriladi
+            unit.turretAngle = Math.atan2(ty - unit.y, tx - unit.x);
 
             const now = Date.now();
-            const fireRate = unit.type === 'Tank' ? 1400 : 900;
+            const fireRate = unit.type === 'Tank' ? 1400 : 750;
+
             if (now - unit.lastShot > fireRate) {
+              unit.lastShot = now;
+              unit.recoil = 6.0;
+
+              // Snaryad chiqarish
               projectiles.push({
-                x: unit.x,
-                y: unit.y,
+                x: unit.x + Math.cos(unit.turretAngle) * 16,
+                y: unit.y + Math.sin(unit.turretAngle) * 16,
                 tx: tx,
                 ty: ty,
                 target: target,
-                speed: unit.type === 'Tank' ? 6.5 : 8.0,
+                speed: unit.type === 'Tank' ? 7.5 : 9.5,
                 damage: unit.damage,
                 team: unit.team,
-                radius: unit.type === 'Tank' ? 3.5 : 2.0
+                isCannon: unit.type === 'Tank'
               });
-              unit.lastShot = now;
+
+              if (unit.type === 'Tank') {
+                playSound('cannon');
+              } else {
+                playSound('rifle');
+              }
             }
+          } else {
+            // Nishon bo'lmaganda minora korpus yo'nalishiga qaytadi
+            unit.turretAngle = unit.hullAngle;
           }
         }
       });
 
-      // 2. Snaryadlar harakati va to'qnashuvlar
+      // 2. Snaryadlar harakati
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         if (p.target && p.target.hp > 0) {
@@ -743,14 +1134,23 @@
         const dist = Math.hypot(dx, dy);
 
         if (dist <= p.speed) {
-          // Nishonga yetib bordi
           if (p.target && p.target.hp > 0) {
             p.target.hp -= p.damage;
-            createExplosion(p.tx, p.ty, 6);
-            addFloatingText(p.tx, p.ty - 10, `-${p.damage}`, "#ff5252");
+            createExplosion(p.tx, p.ty, p.isCannon ? 10 : 4, false);
+            addFloatingText(p.tx, p.ty - 10, `-${p.damage}`, "#ff4d4d");
 
             if (p.target.hp <= 0) {
-              createExplosion(p.tx, p.ty, 25, true);
+              createExplosion(p.tx, p.ty, 35, true);
+              playSound('explosion');
+
+              // Yong'in vayronasi qoldirish
+              burningWrecks.push({
+                x: p.tx, y: p.ty,
+                type: p.target.type,
+                life: 300,
+                color: p.target.team === 'player' ? '#2980b9' : '#c0392b'
+              });
+
               notify(`${p.target.name || p.target.type} yo'q qilindi!`, 'danger');
             }
           }
@@ -765,7 +1165,7 @@
       units = units.filter(u => u.hp > 0);
       buildings = buildings.filter(b => b.hp > 0);
 
-      // 4. Tanlangan obyekt o'chgan bo'lsa tozalash
+      // Tanlangan obyekt yo'q bo'lsa
       if (gameState.selectedEntity && gameState.selectedEntity.hp <= 0) {
         gameState.selectedEntity = null;
       }
@@ -777,13 +1177,15 @@
       isGameOver = true;
       gameOverBanner.style.display = 'block';
       if (victory) {
-        gameOverTitle.textContent = "G'ALABA! (VICTORY)";
+        gameOverTitle.textContent = "G'ALABA! (MISSION ACCOMPLISHED)";
         gameOverTitle.style.color = "#4caf50";
-        gameOverDesc.textContent = "Dushman bazasi yo'q qilindi! Siz maydonni to'liq nazoratga oldingiz.";
+        gameOverDesc.textContent = "Dushman bazasi butunlay yakson qilindi. General unvoni berildi!";
+        playSound('cash');
       } else {
-        gameOverTitle.textContent = "MAG'LUBIYAT! (DEFEAT)";
+        gameOverTitle.textContent = "MAG'LUBIYAT! (MISSION FAILED)";
         gameOverTitle.style.color = "#f44336";
-        gameOverDesc.textContent = "Bosh binongiz (HQ) yakson qilindi. Harbiylar chekinmoqda.";
+        gameOverDesc.textContent = "Bosh binongiz yo'q qilindi. Shahar dushman nazoratiga o'tdi.";
+        playSound('explosion');
       }
     }
 
@@ -791,73 +1193,450 @@
       initGame();
     }
 
-    // ==========================================
-    // 6. SICHQONCHA VA KLAVIATURA BOSHQARUVI
-    // ==========================================
-    canvas.addEventListener('mousedown', (e) => {
-      if (e.button !== 0 || isGameOver) return;
+    // =========================================================================
+    // 7. RENDERLASH (C&C Generals uslubidagi modellar)
+    // =========================================================================
 
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const clickX = (e.clientX - rect.left) * scaleX;
-      const clickY = (e.clientY - rect.top) * scaleY;
+    // A) Tank modeli (Crusader / Scorpion Tank)
+    function drawTank(ctx, u) {
+      ctx.save();
+      ctx.translate(u.x, u.y);
 
-      // 1. O'yinchi birligini tanlash
-      let clickedUnit = units.find(u => {
-        return Math.hypot(u.x - clickX, u.y - clickY) <= u.radius + 6;
-      });
+      // Tanlanganlik doirasi
+      if (gameState.selectedEntity === u) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, u.radius + 8, 0, Math.PI * 2);
+        ctx.stroke();
 
-      // 2. Binoni tanlash
-      let clickedBuilding = null;
-      if (!clickedUnit) {
-        clickedBuilding = buildings.find(b => {
-          return clickX >= b.x && clickX <= b.x + b.width && clickY >= b.y && clickY <= b.y + b.height;
-        });
+        // O'q otish doirasi
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, u.range, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
       }
 
-      if (clickedUnit) {
-        gameState.selectedEntity = clickedUnit;
-        notify(`${clickedUnit.name} tanlandi.`);
-      } else if (clickedBuilding) {
-        gameState.selectedEntity = clickedBuilding;
-        notify(`${clickedBuilding.name} tanlandi.`);
-      } else {
-        // Bo'sh joy bosildi -> Agar o'yinchining harakatlanuvchi birligi bo'lsa yo'naltirish
-        if (gameState.selectedEntity && gameState.selectedEntity.team === 'player' && gameState.selectedEntity.speed) {
-          gameState.selectedEntity.targetX = clickX;
-          gameState.selectedEntity.targetY = clickY;
+      // KORPUS (Hull)
+      ctx.save();
+      ctx.rotate(u.hullAngle);
 
-          clickMarkers.push({ x: clickX, y: clickY, radius: 4, maxRadius: 18, alpha: 1.0 });
-          notify(`${gameState.selectedEntity.name} yangi nuqtaga harakatlanmoqda.`);
-        } else {
-          gameState.selectedEntity = null;
-        }
+      // Soya
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(-u.radius + 2, -u.radius + 3, u.radius * 2, u.radius * 2 - 2);
+
+      // Gusenitsalar (Tracks)
+      ctx.fillStyle = '#1e1f1e';
+      ctx.fillRect(-u.radius, -u.radius + 1, u.radius * 2, 5);
+      ctx.fillRect(-u.radius, u.radius - 6, u.radius * 2, 5);
+
+      // Gusenitsa tishlari
+      ctx.fillStyle = '#111';
+      for (let tx = -u.radius; tx < u.radius; tx += 4) {
+        ctx.fillRect(tx, -u.radius + 1, 1.5, 5);
+        ctx.fillRect(tx, u.radius - 6, 1.5, 5);
       }
 
-      updateUI();
-    });
+      // Zirhli korpus (Kamuflyaj)
+      const baseColor = u.team === 'player' ? '#2b5a32' : '#822424';
+      const highlight = u.team === 'player' ? '#3e7a46' : '#ad3636';
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(-u.radius + 3, -u.radius + 5, u.radius * 2 - 6, u.radius * 2 - 10);
 
-    window.addEventListener('keydown', (e) => {
-      if (isGameOver) return;
-      const key = e.key.toLowerCase();
-      if (key === 'q') buildStructure('Barracks');
-      if (key === 'w') buildStructure('WarFactory');
-      if (key === 'e') trainUnit('Worker');
-      if (key === 'r') trainUnit('Ranger');
-      if (key === 't') trainUnit('Tank');
-    });
+      // Oldingi burchakli zirh plitasi
+      ctx.fillStyle = highlight;
+      ctx.beginPath();
+      ctx.moveTo(u.radius - 3, -u.radius + 5);
+      ctx.lineTo(u.radius + 2, 0);
+      ctx.lineTo(u.radius - 3, u.radius - 5);
+      ctx.closePath();
+      ctx.fill();
 
-    // ==========================================
-    // 7. RENDERLASH (DRAW LOOP)
-    // ==========================================
+      // Egzoz tutuni
+      if (u.targetX !== null) {
+        ctx.fillStyle = 'rgba(80, 80, 80, 0.4)';
+        ctx.beginPath();
+        ctx.arc(-u.radius - 3, 0, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore(); // Korpus tugadi
+
+      // MINORA (Turret) - Nishonga qarab mustaqil aylanadi!
+      ctx.save();
+      ctx.rotate(u.turretAngle);
+
+      // Zambarak dulo (Barrel) + Recoil
+      const barrelOffset = -u.recoil;
+      ctx.fillStyle = '#1c1c1c';
+      ctx.fillRect(2 + barrelOffset, -2.5, 18, 5);
+
+      // Dulo uchi (Muzzle brake)
+      ctx.fillStyle = '#0d0d0d';
+      ctx.fillRect(17 + barrelOffset, -3.5, 4, 7);
+
+      // Minora korpusi
+      ctx.fillStyle = u.team === 'player' ? '#346d3c' : '#992d2d';
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#182b1b';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Komandir lyuki (Hatch)
+      ctx.fillStyle = '#1a2e1d';
+      ctx.beginPath();
+      ctx.arc(-2, -2, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore(); // Minora tugadi
+
+      ctx.restore(); // Tank tugadi
+
+      // HP Bar
+      drawUnitHp(ctx, u);
+    }
+
+    // B) Supply Truck (Yuk mashinasi)
+    function drawSupplyTruck(ctx, u) {
+      ctx.save();
+      ctx.translate(u.x, u.y);
+
+      if (gameState.selectedEntity === u) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, u.radius + 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.rotate(u.hullAngle);
+
+      // Soya
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(-u.radius + 2, -u.radius + 3, u.radius * 2, u.radius * 2 - 2);
+
+      // G'ildiraklar (6 ta g'ildirak)
+      ctx.fillStyle = '#1b1b1b';
+      ctx.fillRect(-u.radius, -u.radius + 1, 7, 3);
+      ctx.fillRect(-u.radius, u.radius - 4, 7, 3);
+      ctx.fillRect(-2, -u.radius + 1, 7, 3);
+      ctx.fillRect(-2, u.radius - 4, 7, 3);
+      ctx.fillRect(u.radius - 8, -u.radius + 1, 7, 3);
+      ctx.fillRect(u.radius - 8, u.radius - 4, 7, 3);
+
+      // Yuk kuzovi (Truck bed)
+      ctx.fillStyle = '#26422b';
+      ctx.fillRect(-u.radius + 2, -u.radius + 3, u.radius * 1.3, u.radius * 2 - 6);
+      ctx.strokeStyle = '#162b1a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-u.radius + 2, -u.radius + 3, u.radius * 1.3, u.radius * 2 - 6);
+
+      // KABINA (Truck Cabin)
+      ctx.fillStyle = '#3a663e';
+      ctx.fillRect(u.radius * 0.3, -u.radius + 4, u.radius * 0.7, u.radius * 2 - 8);
+
+      // Old oyna (Windshield)
+      ctx.fillStyle = '#8ce0ff';
+      ctx.fillRect(u.radius * 0.65, -u.radius + 6, 3, u.radius * 2 - 12);
+
+      // Faralar
+      ctx.fillStyle = '#fff4a3';
+      ctx.fillRect(u.radius - 1, -u.radius + 5, 2, 3);
+      ctx.fillRect(u.radius - 1, u.radius - 8, 2, 3);
+
+      // Resurs qutilari (Supply Crates)
+      if (u.carrying > 0) {
+        ctx.fillStyle = '#f39c12';
+        ctx.fillRect(-u.radius + 4, -u.radius + 5, 7, 7);
+        ctx.fillRect(-u.radius + 4, 0, 7, 7);
+        ctx.strokeStyle = '#b9770e';
+        ctx.strokeRect(-u.radius + 4, -u.radius + 5, 7, 7);
+        ctx.strokeRect(-u.radius + 4, 0, 7, 7);
+      }
+
+      ctx.restore();
+
+      drawUnitHp(ctx, u);
+    }
+
+    // C) Mergan askar (Ranger)
+    function drawRanger(ctx, u) {
+      ctx.save();
+      ctx.translate(u.x, u.y);
+
+      if (gameState.selectedEntity === u) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, u.radius + 5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.rotate(u.turretAngle || u.hullAngle);
+
+      // Etiklar / Oyoqlar animatsiyasi
+      const legOffset = Math.sin(u.walkPhase || 0) * 3;
+      ctx.fillStyle = '#1e241e';
+      ctx.fillRect(-4, -6 + legOffset, 4, 3);
+      ctx.fillRect(-4, 3 - legOffset, 4, 3);
+
+      // Tana / Jilet (Flak Jacket)
+      ctx.fillStyle = u.team === 'player' ? '#2e6b36' : '#853232';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Harbiy kaska (Kevlar Helmet)
+      ctx.fillStyle = u.team === 'player' ? '#468f50' : '#b04343';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // M16 / AK-47 Avtomati
+      ctx.fillStyle = '#111';
+      ctx.fillRect(2, -1.5, 11, 3);
+
+      ctx.restore();
+
+      drawUnitHp(ctx, u);
+    }
+
+    function drawUnitHp(ctx, u) {
+      const hpPct = Math.max(0, u.hp / u.maxHp);
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(u.x - u.radius, u.y - u.radius - 8, u.radius * 2, 3);
+      ctx.fillStyle = '#2ecc71';
+      ctx.fillRect(u.x - u.radius, u.y - u.radius - 8, (u.radius * 2) * hpPct, 3);
+    }
+
+    // D) Command Center (HQ)
+    function drawHQ(ctx, b) {
+      ctx.save();
+
+      // Soya
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(b.x + 6, b.y + 6, b.width, b.height);
+
+      // Temirbeton baza
+      ctx.fillStyle = b.team === 'player' ? '#213824' : '#471f1f';
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.strokeStyle = b.team === 'player' ? '#3d6e42' : '#853939';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+      // Vertolyot maydonchasi (Helipad)
+      const cx = b.x + b.width / 2;
+      const cy = b.y + b.height / 2;
+      ctx.strokeStyle = '#ffd152';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffd152';
+      ctx.font = 'bold 16px Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('H', cx, cy);
+
+      // Radar Antennasi
+      const rX = b.x + b.width - 20;
+      const rY = b.y + 20;
+      ctx.strokeStyle = '#55d45c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(rX, rY, 10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(rX, rY);
+      ctx.lineTo(rX + Math.cos(b.radarAngle) * 10, rY + Math.sin(b.radarAngle) * 10);
+      ctx.stroke();
+
+      // Signal chirog'i (Blinking Beacon)
+      ctx.fillStyle = Math.sin(Date.now() * 0.008) > 0 ? '#ff3b30' : '#4d1010';
+      ctx.beginPath();
+      ctx.arc(b.x + 20, b.y + 20, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tanlanganlik hoshiyasi
+      if (gameState.selectedEntity === b) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(b.x - 5, b.y - 5, b.width + 10, b.height + 10);
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+
+      drawBuildingHp(ctx, b);
+    }
+
+    // E) War Factory (Zavod)
+    function drawWarFactory(ctx, b) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(b.x + 6, b.y + 6, b.width, b.height);
+
+      // Angar
+      ctx.fillStyle = '#29332b';
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.strokeStyle = '#536b57';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+      // Chiqish darvozasi (Bay Doors)
+      ctx.fillStyle = '#161c17';
+      ctx.fillRect(b.x + 15, b.y + b.height - 24, b.width - 30, 24);
+
+      // Xavfsizlik sariq-qora chiziqlari (Hazard Stripes)
+      ctx.strokeStyle = '#f1c40f';
+      ctx.lineWidth = 3;
+      for (let i = b.x + 15; i < b.x + b.width - 15; i += 10) {
+        ctx.beginPath();
+        ctx.moveTo(i, b.y + b.height - 6);
+        ctx.lineTo(i + 6, b.y + b.height);
+        ctx.stroke();
+      }
+
+      // Tomdagi kran relsi
+      ctx.fillStyle = '#3e4d41';
+      ctx.fillRect(b.x + 10, b.y + 12, b.width - 20, 8);
+
+      ctx.fillStyle = '#9ee3a7';
+      ctx.font = 'bold 10px Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('WAR FACTORY', b.x + b.width / 2, b.y + 35);
+
+      if (gameState.selectedEntity === b) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(b.x - 4, b.y - 4, b.width + 8, b.height + 8);
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+      drawBuildingHp(ctx, b);
+    }
+
+    // F) Barracks (Kazarma)
+    function drawBarracks(ctx, b) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(b.x + 5, b.y + 5, b.width, b.height);
+
+      // Quonset bunker shakli
+      ctx.fillStyle = '#3d3021';
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.strokeStyle = '#755b3e';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+      // Tom qovurg'alari
+      ctx.strokeStyle = '#57432d';
+      ctx.lineWidth = 2;
+      for (let i = 12; i < b.width; i += 14) {
+        ctx.beginPath();
+        ctx.moveTo(b.x + i, b.y + 4);
+        ctx.lineTo(b.x + i, b.y + b.height - 4);
+        ctx.stroke();
+      }
+
+      // Kirish eshigi va qum qoplari
+      ctx.fillStyle = '#1c160e';
+      ctx.fillRect(b.x + b.width / 2 - 12, b.y + b.height - 18, 24, 18);
+
+      ctx.fillStyle = '#ffbe6b';
+      ctx.font = 'bold 10px Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('BARRACKS', b.x + b.width / 2, b.y + 20);
+
+      if (gameState.selectedEntity === b) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(b.x - 4, b.y - 4, b.width + 8, b.height + 8);
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+      drawBuildingHp(ctx, b);
+    }
+
+    function drawBuildingHp(ctx, b) {
+      const hpPct = Math.max(0, b.hp / b.maxHp);
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(b.x, b.y - 12, b.width, 5);
+      ctx.fillStyle = '#2ecc71';
+      ctx.fillRect(b.x, b.y - 12, b.width * hpPct, 5);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(b.x, b.y - 12, b.width, 5);
+    }
+
+    // G) Supply Dock (Konteynerlar va Kran)
+    function drawSupplyDock(ctx, d) {
+      ctx.save();
+
+      // Sement platforma
+      ctx.fillStyle = '#1e2b20';
+      ctx.fillRect(d.x, d.y, d.width, d.height);
+      ctx.strokeStyle = '#344e39';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(d.x, d.y, d.width, d.height);
+
+      // 3 ta ISO yuk konteynerlari
+      // 1. Yashil
+      ctx.fillStyle = '#1b5e20';
+      ctx.fillRect(d.x + 8, d.y + 10, 42, 22);
+      ctx.strokeStyle = '#2e7d32';
+      ctx.strokeRect(d.x + 8, d.y + 10, 42, 22);
+
+      // 2. Moviy
+      ctx.fillStyle = '#0d47a1';
+      ctx.fillRect(d.x + 58, d.y + 10, 44, 22);
+      ctx.strokeStyle = '#1565c0';
+      ctx.strokeRect(d.x + 58, d.y + 10, 44, 22);
+
+      // 3. To'q qizil
+      ctx.fillStyle = '#b71c1c';
+      ctx.fillRect(d.x + 20, d.y + 40, 52, 24);
+      ctx.strokeStyle = '#c62828';
+      ctx.strokeRect(d.x + 20, d.y + 40, 52, 24);
+
+      // Kran va kabellar
+      ctx.fillStyle = '#f39c12';
+      ctx.fillRect(d.x + d.width - 24, d.y + 42, 16, 26);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('SUPPLY DOCK', d.x + d.width / 2, d.y - 8);
+
+      ctx.fillStyle = '#ffd152';
+      ctx.font = 'bold 10px Consolas, monospace';
+      ctx.fillText(`$${d.supplies} qoldi`, d.x + d.width / 2, d.y + d.height + 14);
+
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // 8. ASOSIY DRAW LOOP VA RADAR MINIMAP
+    // =========================================================================
     function draw() {
-      // 1. Xaritani tozalash
-      ctx.fillStyle = '#0f1c0f';
+      // 1. Xaritani tozalash (Terrain)
+      ctx.fillStyle = '#152216';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Taktik harbiy koordinatali to'r (Grid)
-      ctx.strokeStyle = 'rgba(70, 115, 70, 0.12)';
+      ctx.strokeStyle = 'rgba(70, 115, 70, 0.14)';
       ctx.lineWidth = 1;
       for (let x = 0; x < canvas.width; x += 40) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -866,190 +1645,108 @@
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
       }
 
-      // Markaziy resurs zonasi
-      supplyDocks.forEach(d => {
-        // Soya va tashqi doira
+      // 2. Erga tushgan izlar (Tread tracks)
+      for (let i = treadTracks.length - 1; i >= 0; i--) {
+        const t = treadTracks[i];
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.angle);
+        ctx.fillStyle = `rgba(10, 18, 11, ${t.alpha})`;
+        if (t.isTank) {
+          ctx.fillRect(-6, -11, 12, 4);
+          ctx.fillRect(-6, 7, 12, 4);
+        } else {
+          ctx.fillRect(-4, -8, 8, 3);
+          ctx.fillRect(-4, 5, 8, 3);
+        }
+        ctx.restore();
+
+        t.alpha -= 0.0008;
+        if (t.alpha <= 0) treadTracks.splice(i, 1);
+      }
+
+      // 3. Yonayotgan metall vayronalari (Wrecks)
+      for (let i = burningWrecks.length - 1; i >= 0; i--) {
+        const w = burningWrecks[i];
+        ctx.save();
+        ctx.fillStyle = '#161616';
         ctx.beginPath();
-        ctx.arc(d.x, d.y, d.radius + 6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(243, 156, 18, 0.15)';
+        ctx.arc(w.x, w.y, 14, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#f39c12';
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#d35400';
-        ctx.stroke();
+        // Olov va tutun zarrachalari
+        if (Math.random() < 0.3) {
+          particles.push({
+            x: w.x + (Math.random() * 12 - 6),
+            y: w.y + (Math.random() * 12 - 6),
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: -Math.random() * 1.5 - 0.5,
+            size: Math.random() * 4 + 2,
+            color: Math.random() > 0.5 ? '#ff5722' : '#333333',
+            alpha: 0.8,
+            fade: 0.03
+          });
+        }
+        ctx.restore();
 
-        // Oltin tangalar / resurs belgisi
-        ctx.fillStyle = '#1c1204';
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, 14, 0, Math.PI * 2);
-        ctx.fill();
+        w.life--;
+        if (w.life <= 0) burningWrecks.splice(i, 1);
+      }
 
-        ctx.fillStyle = '#ffd152';
-        ctx.font = 'bold 11px Consolas, monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('$', d.x, d.y + 4);
+      // 4. Supply Dock
+      supplyDocks.forEach(d => drawSupplyDock(ctx, d));
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px Consolas, monospace';
-        ctx.fillText(`SUPPLY DOCK`, d.x, d.y - d.radius - 8);
-        ctx.font = '10px Consolas, monospace';
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillText(`[${d.supplies}$]`, d.x, d.y + d.radius + 15);
-      });
-
-      // 2. Binolar
+      // 5. Binolar
       buildings.forEach(b => {
-        ctx.save();
-        // Bino soyasi
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(b.x + 5, b.y + 5, b.width, b.height);
-
-        // Bino foni
-        ctx.fillStyle = b.color;
-        ctx.fillRect(b.x, b.y, b.width, b.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = (gameState.selectedEntity === b) ? '#ffd700' : '#ffffff';
-        ctx.strokeRect(b.x, b.y, b.width, b.height);
-
-        // Radar yoki ichki dizayn
         if (b.type.includes('HQ')) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.beginPath();
-          ctx.arc(b.x + b.width / 2, b.y + b.height / 2, 16, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 11px Consolas, monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText('HQ', b.x + b.width / 2, b.y + b.height / 2 + 4);
-        } else {
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 10px Consolas, monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(b.type, b.x + b.width / 2, b.y + b.height / 2 + 4);
+          drawHQ(ctx, b);
+        } else if (b.type === 'WarFactory') {
+          drawWarFactory(ctx, b);
+        } else if (b.type === 'Barracks') {
+          drawBarracks(ctx, b);
         }
-
-        // Jon chizig'i (HP Bar)
-        const hpPercent = Math.max(0, b.hp / b.maxHp);
-        ctx.fillStyle = '#c0392b';
-        ctx.fillRect(b.x, b.y - 10, b.width, 5);
-        ctx.fillStyle = '#2ecc71';
-        ctx.fillRect(b.x, b.y - 10, b.width * hpPercent, 5);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(b.x, b.y - 10, b.width, 5);
-
-        ctx.restore();
       });
 
-      // 3. Birliklar
+      // 6. Birliklar (Tanks, Trucks, Soldiers)
       units.forEach(u => {
-        ctx.save();
-        ctx.translate(u.x, u.y);
-
-        // Tanlanganlik doirasi
-        if (gameState.selectedEntity === u) {
-          ctx.strokeStyle = '#ffd700';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(0, 0, u.radius + 6, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // O'q otish doirasi (Attack range)
-          if (u.range > 0) {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.arc(0, 0, u.range, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-
-        // Birlik yo'nalishi
-        ctx.rotate(u.angle);
-
         if (u.type === 'Tank') {
-          // Gusenitsalar
-          ctx.fillStyle = '#1c1c1c';
-          ctx.fillRect(-u.radius, -u.radius, u.radius * 2, 4);
-          ctx.fillRect(-u.radius, u.radius - 4, u.radius * 2, 4);
-
-          // Korpus
-          ctx.fillStyle = u.team === 'player' ? '#2980b9' : '#c0392b';
-          ctx.fillRect(-u.radius + 2, -u.radius + 3, u.radius * 2 - 4, u.radius * 2 - 6);
-
-          // Minora
-          ctx.fillStyle = u.team === 'player' ? '#1f618d' : '#922b21';
-          ctx.beginPath();
-          ctx.arc(0, 0, 6, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Zambarak
-          ctx.fillStyle = '#222';
-          ctx.fillRect(2, -2, 13, 4);
+          drawTank(ctx, u);
         } else if (u.type === 'Worker') {
-          // Ishchi mashina
-          ctx.fillStyle = '#3498db';
-          ctx.beginPath();
-          ctx.arc(0, 0, u.radius, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-          // Agar quti tashiyotgan bo'lsa, sariq quti ko'rinadi
-          if (u.carrying > 0) {
-            ctx.fillStyle = '#f1c40f';
-            ctx.fillRect(-5, -5, 10, 10);
-            ctx.strokeStyle = '#d68910';
-            ctx.strokeRect(-5, -5, 10, 10);
-          }
+          drawSupplyTruck(ctx, u);
         } else {
-          // Ranger (Askar)
-          ctx.fillStyle = u.team === 'player' ? '#27ae60' : '#e67e22';
-          ctx.beginPath();
-          ctx.arc(0, 0, u.radius, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#ffffff';
-          ctx.stroke();
-
-          // Qurol
-          ctx.fillStyle = '#111';
-          ctx.fillRect(2, -1.5, 8, 3);
+          drawRanger(ctx, u);
         }
-
-        ctx.restore();
-
-        // Birlik ustidagi HP Bar
-        const hpPercent = Math.max(0, u.hp / u.maxHp);
-        ctx.fillStyle = '#c0392b';
-        ctx.fillRect(u.x - u.radius, u.y - u.radius - 8, u.radius * 2, 3);
-        ctx.fillStyle = '#2ecc71';
-        ctx.fillRect(u.x - u.radius, u.y - u.radius - 8, (u.radius * 2) * hpPercent, 3);
       });
 
-      // 4. Snaryadlar
+      // 7. Snaryadlar va O'qlar
       projectiles.forEach(p => {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.team === 'player' ? '#ffd152' : '#ff7675';
+        ctx.arc(p.x, p.y, p.isCannon ? 3.5 : 2.0, 0, Math.PI * 2);
+        ctx.fillStyle = p.team === 'player' ? '#ffe066' : '#ff7675';
         ctx.fill();
+
+        // Dumli iz (Tracer smoke)
+        ctx.strokeStyle = 'rgba(255, 230, 100, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - (p.tx - p.x) * 0.08, p.y - (p.ty - p.y) * 0.08);
+        ctx.stroke();
       });
 
-      // 5. Nishon to'lqinlari (Click Markers)
+      // 8. Nishon ko'rsatkichlari (Click Markers)
       for (let i = clickMarkers.length - 1; i >= 0; i--) {
         const m = clickMarkers[i];
         ctx.save();
-        ctx.strokeStyle = `rgba(76, 175, 80, ${m.alpha})`;
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `rgba(85, 212, 92, ${m.alpha})`;
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
         ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(m.x - 5, m.y); ctx.lineTo(m.x + 5, m.y);
+        ctx.moveTo(m.x, m.y - 5); ctx.lineTo(m.x, m.y + 5);
         ctx.stroke();
         ctx.restore();
 
@@ -1058,7 +1755,7 @@
         if (m.alpha <= 0) clickMarkers.splice(i, 1);
       }
 
-      // 6. Chang / Portlash zarrachalari
+      // 9. Portlash va tutun zarrachalari
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         ctx.save();
@@ -1075,7 +1772,7 @@
         if (p.alpha <= 0) particles.splice(i, 1);
       }
 
-      // 7. Suzuvchi matnlar (+100$, -25)
+      // 10. Suzuvchi matnlar (+$100, -32)
       for (let i = floatingTexts.length - 1; i >= 0; i--) {
         const ft = floatingTexts[i];
         ctx.save();
@@ -1090,11 +1787,114 @@
         ft.alpha -= 0.02;
         if (ft.alpha <= 0) floatingTexts.splice(i, 1);
       }
+
+      // 11. RADAR MINIMAP CHIZISH
+      drawRadar();
     }
 
-    // ==========================================
-    // 8. ASOSIY O'YIN SIKLI (Main Engine Loop)
-    // ==========================================
+    function drawRadar() {
+      radarCtx.fillStyle = '#0f1710';
+      radarCtx.fillRect(0, 0, radarCanvas.width, radarCanvas.height);
+
+      const scaleX = radarCanvas.width / canvas.width;
+      const scaleY = radarCanvas.height / canvas.height;
+
+      // Resurs koni
+      supplyDocks.forEach(d => {
+        radarCtx.fillStyle = '#f39c12';
+        radarCtx.fillRect(d.x * scaleX, d.y * scaleY, d.width * scaleX, d.height * scaleY);
+      });
+
+      // Binolar
+      buildings.forEach(b => {
+        radarCtx.fillStyle = b.team === 'player' ? '#2ecc71' : '#e74c3c';
+        radarCtx.fillRect(b.x * scaleX, b.y * scaleY, b.width * scaleX, b.height * scaleY);
+      });
+
+      // Birliklar
+      units.forEach(u => {
+        radarCtx.fillStyle = u.team === 'player' ? '#55d45c' : '#ff4d4d';
+        radarCtx.beginPath();
+        radarCtx.arc(u.x * scaleX, u.y * scaleY, 2.5, 0, Math.PI * 2);
+        radarCtx.fill();
+      });
+
+      // Radar nuri aylanishi
+      const scanTime = Date.now() * 0.002;
+      radarCtx.strokeStyle = 'rgba(85, 212, 92, 0.4)';
+      radarCtx.lineWidth = 1;
+      radarCtx.beginPath();
+      radarCtx.moveTo(radarCanvas.width / 2, radarCanvas.height / 2);
+      radarCtx.lineTo(
+        radarCanvas.width / 2 + Math.cos(scanTime) * 80,
+        radarCanvas.height / 2 + Math.sin(scanTime) * 80
+      );
+      radarCtx.stroke();
+    }
+
+    // =========================================================================
+    // 9. BOSHQARUV (Sichqoncha & Klaviatura)
+    // =========================================================================
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0 || isGameOver) return;
+      initAudio();
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clickX = (e.clientX - rect.left) * scaleX;
+      const clickY = (e.clientY - rect.top) * scaleY;
+
+      // 1. Birlik tanlash
+      let clickedUnit = units.find(u => Math.hypot(u.x - clickX, u.y - clickY) <= u.radius + 6);
+
+      // 2. Bino tanlash
+      let clickedBuilding = null;
+      if (!clickedUnit) {
+        clickedBuilding = buildings.find(b => {
+          return clickX >= b.x && clickX <= b.x + b.width && clickY >= b.y && clickY <= b.y + b.height;
+        });
+      }
+
+      if (clickedUnit) {
+        gameState.selectedEntity = clickedUnit;
+        playSound('select');
+        notify(`${clickedUnit.name} tanlandi.`);
+      } else if (clickedBuilding) {
+        gameState.selectedEntity = clickedBuilding;
+        playSound('select');
+        notify(`${clickedBuilding.name} tanlandi.`);
+      } else {
+        // Bo'sh joy bosildi -> Tanlangan birlik harakatlanadi
+        if (gameState.selectedEntity && gameState.selectedEntity.team === 'player' && gameState.selectedEntity.speed) {
+          gameState.selectedEntity.targetX = clickX;
+          gameState.selectedEntity.targetY = clickY;
+
+          clickMarkers.push({ x: clickX, y: clickY, radius: 4, alpha: 1.0 });
+          playSound('select');
+          notify(`${gameState.selectedEntity.name} harakatlanmoqda: [${Math.round(clickX)}, ${Math.round(clickY)}]`);
+        } else {
+          gameState.selectedEntity = null;
+        }
+      }
+
+      updateUI();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (isGameOver) return;
+      initAudio();
+      const key = e.key.toLowerCase();
+      if (key === 'q') buildStructure('Barracks');
+      if (key === 'w') buildStructure('WarFactory');
+      if (key === 'e') trainUnit('Worker');
+      if (key === 'r') trainUnit('Ranger');
+      if (key === 't') trainUnit('Tank');
+    });
+
+    // =========================================================================
+    // 10. ASOSIY ENGINE SIKLI
+    // =========================================================================
     let lastTime = performance.now();
     function gameLoop(time) {
       const dt = time - lastTime;
@@ -1107,7 +1907,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // O'yinni boshlash
     initGame();
     requestAnimationFrame(gameLoop);
   </script>

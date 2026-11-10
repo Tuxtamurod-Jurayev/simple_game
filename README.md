@@ -1,44 +1,51 @@
-# Command & Conquer: Mini-Generals 🎮
+# Command & Conquer: Generals (Tactical Web RTS) 🎮
 
-Brauzerda ishlaydigan, ortiqcha o‘rnatishlarni talab qilmaydigan, *Command & Conquer: Generals* uslubidagi yengil va qiziqarli real vaqt strategiya (RTS) o‘yini.
-
----
-
-## 🚀 Texnologiyalar
-* **Frontend:** HTML5, CSS3, JavaScript (ES6+)
-* **Renderlash mexanizmi:** HTML5 Canvas 2D
-* **Arxitektura:** Yagona mustaqil `index.html` fayl (server yoki internet talab etilmaydi)
+Brauzerda ishlaydigan, *Command & Conquer: Generals* o'yinining haqiqiy harbiy modellari, fizikasi, ovoz effektlari va taktik mini-xaritasiga ega ilg'or RTS strategiya o'yini.
 
 ---
 
-## 🎯 2-Bosqich: Kengaytirilgan Iqtisodiyot, AI va Jang Mexanikasi
+## 🎖 Asosiy Xususiyatlar va Modellar
 
-### 1. Iqtisodiyot va Resurslar (Supply System)
-* **Supply Dock:** Xarita markazida joylashgan cheklangan resurs koni.
-* **Ishchi mashina (Worker):** Avtomatik ravishda kon va HQ o'rtasida qatnaydi, har gal `+100$` quti tashiydi va bazaga pul qo'shadi.
+### 1. Generals uslubidagi Haqiqiy Harbiy Modellar
+* **Crusader Tank (USA) & Scorpion Tank (GLA):**
+  * Tishli gusenitsalar va qiya zirh plitalari.
+  * Korpusdan mustaqil ravishda nishonga buriluvchi **360° Minora (Turret)**.
+  * O'q uzilganda **Zambarak orqaga qaytishi (Recoil)** va olovli snaryad chaqnashi.
+  * Harakatlanganda erda haqiqiy **gusenitsa izlari (Tread Tracks)** qoladi.
+* **Supply Truck (Resurs tashuvchi yuk mashinasi):**
+  * 6 ta g'ildirakli og'ir harbiy yuk mashinasi, kabina va faralar.
+  * Kon ustidan avtomatik ravishda sariq **Resurs Qutilarini (Supply Crates)** yuklab bazaga olib keladi.
+* **US Ranger & GLA Rebel (Mergan askarlar):**
+  * Harbiy kaska (Kevlar), bronjilet (Flak jacket), avtomat va yurish animatsiyasi.
+* **Harbiy Binolar:**
+  * **Command Center (HQ):** Vertolyot maydonchasi (Helipad 'H'), aylanuvchi radar antennasi va miltillovchi qizil mayoq chirog'i.
+  * **War Factory (Zavod):** Sariq-qora ogohlantiruvchi chiziqli (Hazard Stripes) katta angar darvozalari va kran relslari.
+  * **Barracks (Kazarma):** Yarim doiraviy bunker va qum qoplari.
+  * **Supply Dock:** Moviy, yashil va qizil ISO yuk konteynerlari va kran.
 
-### 2. Baza va Harbiy Ishlab Chiqarish
-* **Bosh bino (HQ):** Asosiy tayanch bino (2000 HP).
-* **Kazarma (Barracks - 500$):** Piyoda askar (**Mergan Askar / Ranger**) chiqaradi.
-* **Zavod (War Factory - 800$):** Zirhli texnika (**Jangovar Tank**) chiqaradi.
-* **Tezkor klavishlar:**
-  * <kbd>Q</kbd> — Kazarma qurish ($500)
-  * <kbd>W</kbd> — Zavod qurish ($800)
-  * <kbd>E</kbd> — Ishchi mashina chiqarish ($200)
-  * <kbd>R</kbd> — Mergan askar chiqarish ($150)
-  * <kbd>T</kbd> — Jangovar tank chiqarish ($600)
+### 2. Taktik Radar (Minimap) va Boshqaruv Paneli
+* O'ng yuqorida aylanuvchi taktik **Radar (Minimap)** bo'lib, o'yinchi (yashil), dushman (qizil) va resurslarni real vaqtda ko'rsatadi.
+* Pastki qismda tanlangan birlikning **portreti**, aniq HP chizig'i va nomi aks etadigan C&C Generals HUD mavjud.
 
-### 3. Taktik Jangovar Tizim (Combat)
-* **Masofadan otish (Attack Range):** Har bir jangovar birlik o'z otish masofasiga ega bo'lib, dushman yaqinlashganda avtomatik snaryad uzadi.
-* **Binolarni o'qqa tutish:** Tanklar va askarlar nafaqat dushman birliklariga, balki dushman binolariga (shu jumladan HQ ga) ham o'q uzadi.
-* **Jon chiziqlari (HP):** Barcha birliklar va binolar tepasida jon chizig'i mavjud. HP tugasa ob'ekt portlab xaritadan o'chiriladi.
-
-### 4. Sun'iy Intellekt (AI Raqib - 1 ga 1)
-* Xaritaning o'ng tomonida qizil rangli dushman bazasi joylashgan.
-* AI vaqti-vaqti bilan yangi tank va askarlar chiqaradi, kuch to'playdi va o'yinchi bazasiga qarab hujum uyushtiradi.
-* **G'alaba va Mag'lubiyat:** Dushman HQ vayron qilinsa — **G'alaba**, o'yinchining HQ si vayron bo'lsa — **Mag'lubiyat** ekrani chiqadi.
+### 3. Procedural Ovoz Tizimi (Zero External Files)
+* Hech qanday tashqi audio fayllarsiz Web Audio API orqali generatsiya qilinadigan:
+  * Tank zambaragining og'ir "BUM" ovozi.
+  * Avtomatning tezkor o'q uzish ovozi.
+  * Harbiy ratsiya va tanlash signallari.
+  * Resurs olib kelinganda tanga ovozi.
+  * Kuchli portlash va g'alaba signallari.
 
 ---
 
-## 🕹 Ishga tushirish
-Hech qanday o'rnatish shart emas. `index.html` faylini istalgan brauzerda ikki marta bosib oching.
+## 🕹 Boshqaruv va Tezkor Klavishlar
+* **Sichqonchaning chap tugmasi:** Birlik/binoni tanlash va yangi nuqtaga harakatlantirish.
+* <kbd>Q</kbd> — Kazarma (Barracks) qurish ($500)
+* <kbd>W</kbd> — Zavod (War Factory) qurish ($800)
+* <kbd>E</kbd> — Ishchi yuk mashinasi (Supply Truck) chiqarish ($200)
+* <kbd>R</kbd> — Mergan askar (US Ranger) tayyorlash ($150)
+* <kbd>T</kbd> — Crusader Tank ishlab chiqarish ($600)
+
+---
+
+## 🚀 Ishga tushirish
+Fayl hech qanday qo'shimcha o'rnatish talab qilmaydi. `index.html` faylini istalgan brauzerda oching.
