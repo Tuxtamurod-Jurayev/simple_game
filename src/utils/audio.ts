@@ -11,7 +11,10 @@ export function initAudio(): void {
   }
 }
 
-export function playSound(type: 'cannon' | 'rifle' | 'explosion' | 'select' | 'cash' | 'build', enabled = true): void {
+export function playSound(
+  type: 'cannon' | 'rifle' | 'explosion' | 'select' | 'cash' | 'build' | 'airstrike',
+  enabled = true
+): void {
   if (!enabled) return;
   initAudio();
   if (!audioCtx) return;
@@ -19,7 +22,6 @@ export function playSound(type: 'cannon' | 'rifle' | 'explosion' | 'select' | 'c
   const now = audioCtx.currentTime;
 
   if (type === 'cannon') {
-    // Deep heavy tank cannon thump & sub-bass kick
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'triangle';
@@ -75,6 +77,21 @@ export function playSound(type: 'cannon' | 'rifle' | 'explosion' | 'select' | 'c
     gain.connect(audioCtx.destination);
     osc.start(now);
     osc.stop(now + 0.2);
+  } else if (type === 'airstrike') {
+    // Jet jet engine flyby sweep + siren
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(120, now + 0.8);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.8);
+
+    playNoise(0.9, 0.5, 350);
   }
 }
 

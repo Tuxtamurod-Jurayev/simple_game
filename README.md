@@ -1,41 +1,51 @@
-# Command & Conquer: Generals (React + Vite + TypeScript RTS) 🎮
+# Command & Conquer: Generals (Tactical Web RTS v4.0) 🎮
 
-Brauzerda ishlaydigan, **React 18 + Vite + TypeScript** arxitekturasiga ega to'liq modulli va zamonaviy real vaqt strategiya (RTS) o'yini.
+Brauzerda ishlaydigan, **React + TypeScript + Canvas** arxitekturasiga ega to'liq modulli va zamonaviy real vaqt strategiya (RTS) o'yini.
 
 ---
 
-## 🚀 3-Bosqich Yangiliklari: React, TypeScript va Guruhlab Tanlash (Box Selection)
+## 🎖 4-Bosqich: Vizual Realizm, AI Qiyinchilik Darajalari va Haqiqiy Generals HUD
 
-### 1. Arxitektura va Modullik
-* **React 18 & TypeScript:** To'liq tiplashtirilgan interfeyslar (`Unit`, `Building`, `GameState`, `Projectile`).
-* **Komponentlar:**
-  * `GameCanvas.tsx` — 60 FPS Canvas 2D render sikli, fizika, jang va ramkali tanlash.
-  * `UIOverlay.tsx` — Mablag', energiya, dushman HQ va audio sozlamalari.
-  * `BuildMenu.tsx` — Generals uslubidagi tanlangan obyekt kartasi va tezkor ishlab chiqarish menyusi.
-  * `audio.ts` — Web Audio API orqali procedural tovushlar.
+### 1. Taktik Skirmish Menyu (AI Qiyinchilik Darajalari)
+O'yin boshlanishida dushman generalining darajasi tanlanadi:
+* **Oson (Kursant / Easy):** Boshlang'ich mablag' $1,500, sekin rivojlanadi (9.5s), faqat yengil texnikalar bilan hujum qiladi.
+* **O'rta (Mayor / Medium):** Boshlang'ich mablag' $3,000, Crusader tanklari va Humvee guruhlari bilan muntazam hujum qiladi (6s).
+* **Qiyin (General / Brutal Hard):** Boshlang'ich mablag' $5,500, 1.6x daromad koeffitsienti, har 3.5 soniyada hujum qiladi, ikki stvolli og'ir **Overlord** tanklarini chiqaradi va eng kam jonli (HP) nishonlarni birinchi yo'q qiladi.
 
-### 2. Ramkali Guruhlab Tanlash (Box / Drag Selection)
-* Sichqonchaning chap tugmasini bosib ramka tortish orqali bir vaqtning o'zida butun qo'shinni (tanklar, ishchilar, askarlar) tanlash mumkin!
-* O'ng tugma (yoki bo'sh joyga bosish) orqali tanlangan butun guruh taktik safda (formation) yangi koordinataga yo'l oladi.
+### 2. Realistik Harbiy Modellar va VFX
+* **Crusader Tank:** Zirhli korpus, tishli gusenitsalar va 360° nishonga qarab aylanuvchi mustaqil minora (turret).
+* **Humvee Recon:** Yuqori tezlikka ega taktik razvedka mashinasi.
+* **Overlord Tank:** Ikki stvolli ulkan og'ir tank (1300 HP, 75 damage, stvollardan ketma-ket og'ir o't ochadi).
+* **Supply Truck:** Resurs kashfiyotchisi, konlardan $120 lik qutilarni tashib bazaga pul yig'adi.
+* **VFX & Zararlar:**
+  * O'q uzilganda stvoldan olov chaqnashi (*Muzzle Flash*).
+  * 40% dan kam HP qolgan texnikalardan qora tutun chiqishi.
+  * Portlash zarrachalari va zarba to'lqinlari.
+  * Cho'l relefi, asfalt baza yo'laklari va tosh barxanlari.
 
-### 3. C&C Generals Vizual Modellari va Jang Tizimi
-* **Crusader Tank:** Tishli gusenitsalar, erga tushadigan izlar, mustaqil 360° aylanuvchi minora va recoil animatsiyasi.
-* **Supply Truck:** 6 g'ildirakli og'ir transport, sariq resurs qutilarini yuklash/tushirish.
-* **US Ranger:** Flak jilet, kaska, avtomat va yurish animatsiyasi.
-* **USA Command Center:** Helipad ("H"), aylanuvchi radar va miltillovchi qizil mayoq.
-* **War Factory & Barracks:** Angar darvozalari, qum qopli bunkerlar.
-* **Taktik Radar (Minimap):** Jonli mini-xarita va radar nuri aylanishi.
+### 3. Klassik Generals HUD Interfeysi
+* **Yuqori Taktik Panel:**
+  * Credits ($), Energiya shkalasi (Power bar), Tanlangan AI darajasi.
+* **Asosiy Maydon (1100 x 520 px):**
+  * Box selection (ramka tortib bir nechta birlikni tanlash), nishon doiralari, snaryad treyseri.
+* **Pastki Generals Boshqaruv Paneli (Classic Control Bar):**
+  * **Chap:** Taktik Radar (Jonli Minimap - birliklar va bazalar koordinatasi bilan).
+  * **O'rta:** Tanlangan tank/bino portreti, zirh va buyruqlar holati.
+  * **O'ng (3x4 Command Grid):**
+    * Supply Truck ($250)
+    * Humvee Recon ($400)
+    * Crusader Tank ($700)
+    * Overlord Tank ($1200)
+    * War Factory ($800)
+    * **A-10 Air Strike (Aviatsiya zarbasi):** 100% ga to'lganda ketma-ket 5 ta kuchli aviabomba tashlab dushman bazasini yakson qiladi!
 
 ---
 
 ## 🕹 Boshqaruv
 * **Sichqonchaning chap tugmasi:** Biror obyektni tanlash yoki ramka chizib **guruhlab tanlash**.
-* **Sichqonchaning o'ng tugmasi (yoki chap tugma):** Tanlangan guruhni harakatlantirish.
-* <kbd>Q</kbd> — Kazarma (Barracks) qurish ($500)
-* <kbd>W</kbd> — Zavod (War Factory) qurish ($800)
-* <kbd>E</kbd> — Supply Truck chiqarish ($200)
-* <kbd>R</kbd> — US Ranger askar tayyorlash ($150)
-* <kbd>T</kbd> — Crusader Tank ishlab chiqarish ($600)
+* **Sichqonchaning o'ng tugmasi:** Tanlangan butun guruhni saf tortib (formation) harakatlantirish.
+* **War Factory qurish:** Menyu orqali tanlab xaritaga joylashtirish.
+* **A-10 Air Strike:** 100% zaryadlanganda bosib dushmanga havodan zarba berish.
 
 ---
 

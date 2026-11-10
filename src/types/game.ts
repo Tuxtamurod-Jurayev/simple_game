@@ -1,50 +1,17 @@
 export type Team = 'player' | 'enemy';
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type UnitType = 'Worker' | 'Humvee' | 'Crusader' | 'Overlord';
+export type BuildingType = 'HQ' | 'Barracks' | 'WarFactory' | 'PowerPlant';
 
-export type UnitType = 'Worker' | 'Tank' | 'Ranger';
-export type BuildingType = 'HQ' | 'EnemyHQ' | 'Barracks' | 'WarFactory';
-
-export interface Entity {
-  id: number;
+export interface Particle {
   x: number;
   y: number;
-  hp: number;
-  maxHp: number;
-  team: Team;
-  name: string;
-  icon: string;
-}
-
-export interface Unit extends Entity {
-  type: UnitType;
+  vx: number;
+  vy: number;
   radius: number;
-  speed: number;
-  targetX: number | null;
-  targetY: number | null;
-  range: number;
-  damage: number;
-  lastShot: number;
-  carrying: number;
-  hullAngle: number;
-  turretAngle: number;
-  recoil: number;
-  walkPhase: number;
-}
-
-export interface Building extends Entity {
-  type: BuildingType;
-  width: number;
-  height: number;
-  radarAngle?: number;
-}
-
-export interface SupplyDock {
-  id: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  supplies: number;
-  maxSupplies: number;
+  color: string;
+  alpha: number;
+  decay: number;
 }
 
 export interface Projectile {
@@ -52,73 +19,82 @@ export interface Projectile {
   y: number;
   tx: number;
   ty: number;
-  target: Entity | null;
   speed: number;
   damage: number;
   team: Team;
-  isCannon: boolean;
+  isHeavy?: boolean;
 }
 
-export interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  color: string;
-  alpha: number;
-  fade: number;
-}
-
-export interface TreadTrack {
-  x: number;
-  y: number;
-  angle: number;
-  isTank: boolean;
-  alpha: number;
-}
-
-export interface BurningWreck {
-  x: number;
-  y: number;
-  type: string;
-  life: number;
-  color: string;
-}
-
-export interface FloatingText {
-  x: number;
-  y: number;
-  text: string;
-  color: string;
-  alpha: number;
-  vy: number;
-}
-
-export interface ClickMarker {
+export interface Unit {
+  id: number;
+  type: UnitType;
+  team: Team;
   x: number;
   y: number;
   radius: number;
-  alpha: number;
+  hp: number;
+  maxHp: number;
+  speed: number;
+  targetX: number | null;
+  targetY: number | null;
+  range: number;
+  damage: number;
+  fireRate: number;
+  lastShot: number;
+  bodyAngle: number;
+  turretAngle: number;
+  carrying: number;
 }
 
-export interface GameState {
-  money: number;
-  energy: number;
-  maxEnergy: number;
-  selectedUnits: Unit[];
-  selectedBuilding: Building | null;
-  isDragging: boolean;
-  dragStartX: number;
-  dragStartY: number;
-  dragEndX: number;
-  dragEndY: number;
-  isGameOver: boolean;
-  victory: boolean;
-  audioEnabled: boolean;
+export interface Building {
+  id: number;
+  type: BuildingType;
+  team: Team;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  hp: number;
+  maxHp: number;
+  radarAngle: number;
 }
 
-export function isBuilding(entity: Entity): entity is Building {
-  return 'width' in entity && typeof (entity as unknown as Building).width === 'number';
+export interface DifficultyConfig {
+  name: string;
+  title: string;
+  aiMoney: number;
+  spawnInterval: number;
+  incomeMultiplier: number;
+  allowOverlord: boolean;
+  description: string;
 }
 
+export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultyConfig> = {
+  easy: {
+    name: "Oson",
+    title: "Kursant (Easy)",
+    aiMoney: 1500,
+    spawnInterval: 9500,
+    incomeMultiplier: 0.8,
+    allowOverlord: false,
+    description: "Raqib sekin rivojlanadi va faqat yengil texnikalar bilan kichik hujumlar uyushtiradi."
+  },
+  medium: {
+    name: "O'rta",
+    title: "Mayor (Medium)",
+    aiMoney: 3000,
+    spawnInterval: 6000,
+    incomeMultiplier: 1.0,
+    allowOverlord: false,
+    description: "Muvozanatli raqib. Crusader tanklari va Humvee guruhlari bilan muntazam hujum qiladi."
+  },
+  hard: {
+    name: "Qiyin",
+    title: "General (Brutal Hard)",
+    aiMoney: 5500,
+    spawnInterval: 3500,
+    incomeMultiplier: 1.6,
+    allowOverlord: true,
+    description: "Shafqatsiz AI. Ikki barobar tez boyiydi, og'ir Overlord tanklarini chiqaradi va zaif nuqtalarga zarba beradi."
+  }
+};
