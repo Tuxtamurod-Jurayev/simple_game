@@ -16,35 +16,32 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
   const factions = [
     {
       id: 'USA' as Faction,
-      name: 'AQSH (USA)',
-      sub: 'Yuqori Texnologiya',
+      name: 'USA',
+      sub: 'Yuqori texnologiya',
       color: 'from-blue-600/30 to-blue-950/80',
       border: 'border-blue-500',
-      glow: 'shadow-blue-500/30',
       accent: 'text-blue-400',
-      features: ['Lazerli Paladin tanki', 'Supply Chinook vertolyoti', 'Orbital Zarracha to\'pi'],
+      features: ['Paladin lazer tanki', 'Chinook vertolyoti', 'Zarracha to\'pi'],
       stats: { attack: '85%', armor: '75%', tech: '100%' }
     },
     {
       id: 'China' as Faction,
-      name: 'Xitoy (CHINA)',
-      sub: 'Og\'ir Zirh & O\'rda',
+      name: 'Xitoy',
+      sub: 'Og\'ir zirh & o\'rda',
       color: 'from-red-600/30 to-red-950/80',
       border: 'border-red-500',
-      glow: 'shadow-red-500/30',
       accent: 'text-red-400',
-      features: ['Overlord supertanki', 'Gatling tezotuvchi to\'p', 'Yadroviy raketa zarbasi'],
+      features: ['Overlord supertanki', 'Gatling tezotar to\'pi', 'Yadroviy raketa'],
       stats: { attack: '100%', armor: '95%', tech: '70%' }
     },
     {
       id: 'GLA' as Faction,
-      name: 'GLA (Partizanlar)',
-      sub: 'Resurssiz & Salvage',
+      name: 'GLA',
+      sub: 'Partizan & Salvage',
       color: 'from-emerald-600/30 to-emerald-950/80',
       border: 'border-emerald-500',
-      glow: 'shadow-emerald-500/30',
       accent: 'text-emerald-400',
-      features: ['Elektr quvvati shart emas', 'Texnikani kuchaytirish', 'Skad zaharli bo\'roni'],
+      features: ['Elektr talab etilmaydi', 'Salvage qurol kuchi', 'Skad bo\'roni'],
       stats: { attack: '80%', armor: '60%', tech: '85%' }
     }
   ];
@@ -64,89 +61,88 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
 
   return (
     <div className="w-screen h-screen fixed inset-0 bg-[#050906] flex items-center justify-center p-4 font-mono select-none overflow-hidden">
-      {/* Background Military Radar Sweeper Animation */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-25">
+      {/* Background Military Radar Sweeper */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-20">
         <div className="w-[750px] h-[750px] rounded-full border border-emerald-500/30 relative flex items-center justify-center">
           <div className="w-[500px] h-[500px] rounded-full border border-emerald-500/20" />
           <div className="w-[250px] h-[250px] rounded-full border border-emerald-500/20" />
           <div className="absolute w-full h-[1px] bg-emerald-500/20" />
           <div className="absolute h-full w-[1px] bg-emerald-500/20" />
-          {/* Rotating radar sweep beam */}
           <div className="absolute w-full h-full rounded-full animate-spin [animation-duration:8s] bg-gradient-to-tr from-transparent via-transparent to-emerald-500/20 pointer-events-none" />
         </div>
       </div>
 
-      {/* Main Tactical Card */}
-      <div className="relative z-10 w-full max-w-4xl bg-[#0c140e]/95 border-2 border-amber-500/80 rounded-xl p-6 shadow-2xl backdrop-blur-md flex flex-col gap-5">
+      {/* Main Tactical Skirmish Card */}
+      <div className="relative z-10 w-full max-w-3xl bg-[#0c140e]/95 border-2 border-amber-500/80 rounded-xl p-5 shadow-2xl backdrop-blur-md flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-          <div className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+        <div className="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
             <div>
-              <h1 className="text-2xl font-black tracking-widest text-amber-400 uppercase drop-shadow">
-                COMMAND & CONQUER: GENERALS 3D
+              <h1 className="text-xl font-black tracking-widest text-amber-400 uppercase drop-shadow">
+                C&C: GENERALS 3D
               </h1>
-              <p className="text-[11px] text-slate-400 font-bold">
-                HARBIY TAKTIK SİMULYATOR • THREE.JS 3D DVIJOK
+              <p className="text-[10px] text-slate-400 font-bold">
+                Harbiy Taktika • Three.js Dvijok
               </p>
             </div>
           </div>
-          <div className="text-right text-[11px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-3 py-1 rounded">
-            HOLAT: TIZIM FAOL (60 FPS)
+          <div className="text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2.5 py-0.5 rounded font-bold">
+            3D FAOL (60 FPS)
           </div>
         </div>
 
-        {/* 1. Faction Selection (Concise, animated cards) */}
+        {/* 1. Faction Selection (Minimalist Cards) */}
         <div>
-          <label className="text-xs font-black text-amber-300 uppercase tracking-wider block mb-2.5">
-            1. FRAKTSIYANGIZNI TANLANG:
+          <label className="text-[11px] font-black text-amber-300 uppercase tracking-wider block mb-2">
+            1. FRAKTSIYA:
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {factions.map(f => {
               const isSelected = playerFaction === f.id;
               return (
                 <div
                   key={f.id}
                   onClick={() => setPlayerFaction(f.id)}
-                  className={`cursor-pointer rounded-lg p-3.5 border-2 transition-all duration-200 relative overflow-hidden bg-gradient-to-b ${f.color} ${
+                  className={`cursor-pointer rounded-lg p-3 border-2 transition-all duration-200 relative overflow-hidden bg-gradient-to-b ${f.color} ${
                     isSelected
-                      ? `${f.border} shadow-xl scale-[1.02] bg-opacity-90`
+                      ? `${f.border} shadow-lg scale-[1.02] bg-opacity-95`
                       : 'border-slate-700/80 hover:border-slate-500 opacity-75 hover:opacity-100'
                   }`}
                 >
                   {isSelected && (
-                    <div className="absolute top-0 right-0 bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-bl uppercase">
-                      TANLANDI
+                    <div className="absolute top-0 right-0 bg-amber-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-bl uppercase">
+                      ✓
                     </div>
                   )}
 
-                  <div className="flex items-baseline justify-between mb-1">
-                    <span className="text-base font-black text-white tracking-wide">{f.name}</span>
+                  <div className="flex items-baseline justify-between mb-0.5">
+                    <span className="text-sm font-black text-white tracking-wide">{f.name}</span>
                   </div>
-                  <div className={`text-[11px] font-bold ${f.accent} mb-2.5`}>{f.sub}</div>
+                  <div className={`text-[10px] font-bold ${f.accent} mb-2`}>{f.sub}</div>
 
-                  {/* Feature Bullets */}
-                  <div className="space-y-1 text-[11px] text-slate-200 mb-3 border-t border-white/10 pt-2">
+                  {/* Bullet points */}
+                  <div className="space-y-1 text-[10px] text-slate-200 mb-2 border-t border-white/10 pt-1.5">
                     {f.features.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-1.5">
-                        <span className="text-emerald-400 font-bold">✓</span>
+                        <span className="text-emerald-400 font-bold">•</span>
                         <span>{item}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Concise Stats Bars */}
-                  <div className="space-y-1 text-[10px] text-slate-300 border-t border-white/10 pt-2">
-                    <div className="flex justify-between">
-                      <span>Hujum:</span>
+                  {/* Stats Bar */}
+                  <div className="grid grid-cols-3 gap-1 text-[9px] text-slate-300 border-t border-white/10 pt-1.5 text-center">
+                    <div>
+                      <span className="text-slate-400 block">Hujum</span>
                       <span className="font-bold text-amber-300">{f.stats.attack}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Zirh:</span>
+                    <div>
+                      <span className="text-slate-400 block">Zirh</span>
                       <span className="font-bold text-sky-300">{f.stats.armor}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Texnologiya:</span>
+                    <div>
+                      <span className="text-slate-400 block">Tech</span>
                       <span className="font-bold text-emerald-300">{f.stats.tech}</span>
                     </div>
                   </div>
@@ -156,12 +152,12 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
           </div>
         </div>
 
-        {/* 2. Tactical Settings Grid (Compact, responsive) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border-t border-slate-700/80 pt-3">
+        {/* 2. Tactical Settings Grid (Compact) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 border-t border-slate-700/80 pt-2.5">
           {/* Raqib Fraktsiyasi */}
-          <div className="bg-black/60 border border-slate-700 rounded p-2.5">
-            <span className="text-[11px] font-bold text-slate-400 block mb-1.5 uppercase">
-              2. Raqib (AI) Fraktsiyasi:
+          <div className="bg-black/60 border border-slate-700 rounded p-2">
+            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+              2. RAQIB (AI):
             </span>
             <div className="grid grid-cols-3 gap-1">
               {(['USA', 'China', 'GLA'] as Faction[]).map(f => (
@@ -181,9 +177,9 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
           </div>
 
           {/* AI Qiyinchilik Darajasi */}
-          <div className="bg-black/60 border border-slate-700 rounded p-2.5">
-            <span className="text-[11px] font-bold text-slate-400 block mb-1.5 uppercase">
-              3. AI Qiyinchiligi:
+          <div className="bg-black/60 border border-slate-700 rounded p-2">
+            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+              3. AI DARAJASI:
             </span>
             <div className="grid grid-cols-3 gap-1">
               {[
@@ -207,9 +203,9 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
           </div>
 
           {/* Boshlang'ich Mablag' */}
-          <div className="bg-black/60 border border-slate-700 rounded p-2.5">
-            <span className="text-[11px] font-bold text-slate-400 block mb-1.5 uppercase">
-              4. Boshlang'ich Mablag':
+          <div className="bg-black/60 border border-slate-700 rounded p-2">
+            <span className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+              4. MABLAG':
             </span>
             <div className="grid grid-cols-3 gap-1">
               {[2500, 5000, 10000].map(cash => (
@@ -233,14 +229,14 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartGame }) => {
         <button
           onClick={handleStart}
           disabled={isDeploying}
-          className={`w-full py-4 text-base font-black tracking-widest uppercase rounded-lg shadow-2xl transition-all cursor-pointer flex items-center justify-center gap-2 border-2 ${
+          className={`w-full py-3 text-sm font-black tracking-widest uppercase rounded-lg shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 border-2 ${
             isDeploying
-              ? 'bg-emerald-400 text-black border-emerald-300 scale-[0.98] animate-pulse'
-              : 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-black border-amber-300 shadow-amber-500/30 hover:scale-[1.01]'
+              ? 'bg-emerald-400 text-black border-emerald-300 scale-[0.99] animate-pulse'
+              : 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-black border-amber-300 shadow-amber-500/20 hover:scale-[1.005]'
           }`}
         >
-          <span>{isDeploying ? 'JANG MAYDONIGA YUKLANMOQDA...' : 'JANG MAYDONIGA KIRISH (DEPLOY)'}</span>
-          <span className="text-xl">➔</span>
+          <span>{isDeploying ? 'YUKLANMOQDA...' : 'JANGNI BOSHLASH'}</span>
+          <span className="text-lg">➔</span>
         </button>
       </div>
     </div>
