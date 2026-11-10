@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command & Conquer: Mini-Generals</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: #0d130e;
+      color: #e0e6ed;
+      font-family: 'Consolas', 'Segoe UI', Tahoma, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    /* Harbiy uslubdagi sarlavha paneli */
+    header {
+      width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border-bottom: 2px solid #2e5330;
+      padding-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 19px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #72cf72;
+      text-shadow: 0 0 8px rgba(114, 207, 114, 0.4);
+    }
+
+    .badge {
+      background: #1b381c;
+      color: #92e692;
+      border: 1px solid #3c7a3e;
+      padding: 3px 8px;
+      font-size: 11px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Asosiy UI Panel */
+    #ui-panel {
+      width: 900px;
+      background: linear-gradient(180deg, #182619 0%, #0f1810 100%);
+      border: 2px solid #3b633d;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 18px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-group {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .stat-label {
+      color: #8da48e;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .stat-val {
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .stat-money {
+      color: #ffd152;
+      text-shadow: 0 0 6px rgba(255, 209, 82, 0.4);
+    }
+
+    .stat-energy {
+      color: #4dc3ff;
+      text-shadow: 0 0 6px rgba(77, 195, 255, 0.4);
+    }
+
+    .stat-selected {
+      color: #98ff98;
+      background: #132415;
+      padding: 3px 10px;
+      border: 1px solid #2f5431;
+      border-radius: 4px;
+    }
+
+    .controls-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .build-btn {
+      background: #254d28;
+      color: #c9f7cb;
+      border: 1px solid #488a4c;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .build-btn:hover {
+      background: #316635;
+      border-color: #61b366;
+      box-shadow: 0 0 10px rgba(72, 138, 76, 0.5);
+    }
+
+    .build-btn kbd {
+      background: #0f1c10;
+      border: 1px solid #488a4c;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #ffd152;
+    }
+
+    /* O'yin oynasi va hoshiyasi */
+    #canvas-container {
+      position: relative;
+      width: 900px;
+      height: 600px;
+      border: 2px solid #3b633d;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    canvas {
+      display: block;
+      background-color: #1a2e1a;
+      cursor: crosshair;
+    }
+
+    /* Xabar berish tizimi (Toast / Alerts) */
+    #status-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 14px;
+      background: rgba(14, 25, 15, 0.85);
+      border: 1px solid #39633c;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #9cd49e;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .alert-danger {
+      color: #ff6b6b !important;
+      border-color: #a83232 !important;
+      background: rgba(43, 14, 14, 0.9) !important;
+      animation: pulseAlert 0.4s ease;
+    }
+
+    @keyframes pulseAlert {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    /* Pastki ko'rsatma paneli */
+    footer {
+      width: 900px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      color: #657b67;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Command & Conquer: Mini-Generals</h1>
+    <div class="badge">1-Bosqich: Prototip v0.1</div>
+  </header>
+
+  <!-- UI Panel -->
+  <div id="ui-panel">
+    <div class="stat-group">
+      <div class="stat-item">
+        <span class="stat-label">Mablag':</span>
+        <span class="stat-val stat-money" id="money-display">$1000</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Energiya:</span>
+        <span class="stat-val stat-energy" id="energy-display">10/10</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tanlangan:</span>
+        <span class="stat-val stat-selected" id="selected-display">Yo'q</span>
+      </div>
+    </div>
+
+    <div class="controls-hint">
+      <button class="build-btn" id="build-btn" title="Klaviatura: [Q]">
+        <kbd>Q</kbd> Kazarma qurish ($500)
+      </button>
+    </div>
+  </div>
+
+  <!-- Canvas Maydoni -->
+  <div id="canvas-container">
+    <canvas id="gameCanvas" width="900" height="600"></canvas>
+    <div id="status-bar">Tizim tayyor. Buyruq kutilmoqda.</div>
+  </div>
+
+  <footer>
+    <span>Boshqaruv: Chap tugma — tanlash va buyruq berish.</span>
+    <span>[Q] — Kazarma qurish ($500)</span>
+  </footer>
+
+  <script>
+    // ==========================================
+    // 1. O'YIN HOLATI VA KONFIGURATSIYA
+    // ==========================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const moneyEl = document.getElementById('money-display');
+    const energyEl = document.getElementById('energy-display');
+    const selectedEl = document.getElementById('selected-display');
+    const statusBar = document.getElementById('status-bar');
+    const buildBtn = document.getElementById('build-btn');
+
+    const state = {
+      money: 1000,
+      energy: 10,
+      maxEnergy: 10,
+      selectedEntity: null,
+      entities: [],
+      particles: [],
+      targetMarkers: []
+    };
+
+    let alertTimeout = null;
+    function notify(text, isDanger = false) {
+      statusBar.textContent = text;
+      if (isDanger) {
+        statusBar.classList.add('alert-danger');
+      } else {
+        statusBar.classList.remove('alert-danger');
+      }
+      if (alertTimeout) clearTimeout(alertTimeout);
+      alertTimeout = setTimeout(() => {
+        statusBar.classList.remove('alert-danger');
+      }, 2500);
+    }
+
+    function updateUI() {
+      moneyEl.textContent = `$${state.money}`;
+      energyEl.textContent = `${state.energy}/${state.maxEnergy}`;
+      if (state.selectedEntity) {
+        selectedEl.textContent = state.selectedEntity.displayName;
+      } else {
+        selectedEl.textContent = "Yo'q";
+      }
+    }
+
+    // ==========================================
+    // 2. MODELLAR VA KLASSLAR
+    // ==========================================
+
+    // Bazaviy Obyekt sinfi
+    class Entity {
+      constructor(x, y, type, displayName) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.displayName = displayName;
+        this.selected = false;
+      }
+
+      containsPoint(px, py) {
+        return false;
+      }
+
+      update() {}
+      draw(ctx) {}
+    }
+
+    // HQ (Bosh Bino)
+    class Headquarters extends Entity {
+      constructor(x, y) {
+        super(x, y, 'building', 'HQ (Bosh bino)');
+        this.width = 110;
+        this.height = 90;
+      }
+
+      containsPoint(px, py) {
+        return (
+          px >= this.x &&
+          px <= this.x + this.width &&
+          py >= this.y &&
+          py <= this.y + this.height
+        );
+      }
+
+      draw(ctx) {
+        // Asosiy bino poydevori
+        ctx.save();
+
+        // Soya
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(this.x + 6, this.y + 6, this.width, this.height);
+
+        // Bino foni (Harbiy yashil/kulrang)
+        ctx.fillStyle = '#223d24';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+
+        // Bino devorlari
+        ctx.strokeStyle = '#3e7042';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+        // Ichki komanda markazi va radar maydonchasi
+        ctx.fillStyle = '#172b19';
+        ctx.fillRect(this.x + 12, this.y + 12, this.width - 24, this.height - 24);
+
+        // Vertolyot yoki belgi doirasi (H / HQ)
+        ctx.strokeStyle = '#5ca362';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x + this.width / 2, this.y + this.height / 2, 20, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#8ce093';
+        ctx.font = 'bold 13px Consolas, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('HQ', this.x + this.width / 2, this.y + this.height / 2);
+
+        // Radar antennasi
+        const time = Date.now() * 0.003;
+        const radarX = this.x + this.width - 20;
+        const radarY = this.y + 20;
+        ctx.strokeStyle = '#4de055';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(radarX, radarY, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(radarX, radarY);
+        ctx.lineTo(radarX + Math.cos(time) * 8, radarY + Math.sin(time) * 8);
+        ctx.stroke();
+
+        // Tanlanganlik hoshiyasi
+        if (this.selected) {
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(this.x - 5, this.y - 5, this.width + 10, this.height + 10);
+          ctx.setLineDash([]);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // Kazarma (Barracks) - Q tugmasi bilan quriladi
+    class Barracks extends Entity {
+      constructor(x, y) {
+        super(x, y, 'building', 'Kazarma (Barracks)');
+        this.width = 80;
+        this.height = 70;
+      }
+
+      containsPoint(px, py) {
+        return (
+          px >= this.x &&
+          px <= this.x + this.width &&
+          py >= this.y &&
+          py <= this.y + this.height
+        );
+      }
+
+      draw(ctx) {
+        ctx.save();
+        // Soya
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.fillRect(this.x + 5, this.y + 5, this.width, this.height);
+
+        // Bino korpusi (Kamuflyaj / To'q sariq harbiy uslub)
+        ctx.fillStyle = '#3a2d1d';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+
+        ctx.strokeStyle = '#85643e';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+        // Kazarma tomi chiziqlari
+        ctx.strokeStyle = '#59442a';
+        ctx.lineWidth = 2;
+        for (let i = 15; i < this.width; i += 15) {
+          ctx.beginPath();
+          ctx.moveTo(this.x + i, this.y + 5);
+          ctx.lineTo(this.x + i, this.y + this.height - 5);
+          ctx.stroke();
+        }
+
+        // Kazarma eshigi / kirish qismi
+        ctx.fillStyle = '#1c160e';
+        ctx.fillRect(this.x + this.width / 2 - 12, this.y + this.height - 18, 24, 18);
+
+        // Harbiy yulduzcha yoki nom
+        ctx.fillStyle = '#ffbe6b';
+        ctx.font = 'bold 11px Consolas, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('BARRACKS', this.x + this.width / 2, this.y + 20);
+
+        // Tanlanganlik hoshiyasi
+        if (this.selected) {
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 3]);
+          ctx.strokeRect(this.x - 4, this.y - 4, this.width + 8, this.height + 8);
+          ctx.setLineDash([]);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // Harakatlanuvchi jangovar yoki ishchi birlik (Unit)
+    class Unit extends Entity {
+      constructor(x, y, radius, speed, color, displayName, unitKind) {
+        super(x, y, 'unit', displayName);
+        this.radius = radius;
+        this.speed = speed;
+        this.color = color;
+        this.unitKind = unitKind; // 'worker' yoki 'tank'
+        this.targetX = null;
+        this.targetY = null;
+        this.angle = 0;
+      }
+
+      containsPoint(px, py) {
+        const dx = px - this.x;
+        const dy = py - this.y;
+        return (dx * dx + dy * dy) <= (this.radius + 5) * (this.radius + 5);
+      }
+
+      moveTo(tx, ty) {
+        this.targetX = tx;
+        this.targetY = ty;
+      }
+
+      update() {
+        if (this.targetX !== null && this.targetY !== null) {
+          const dx = this.targetX - this.x;
+          const dy = this.targetY - this.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist > this.speed) {
+            this.angle = Math.atan2(dy, dx);
+            this.x += (dx / dist) * this.speed;
+            this.y += (dy / dist) * this.speed;
+          } else {
+            this.x = this.targetX;
+            this.y = this.targetY;
+            this.targetX = null;
+            this.targetY = null;
+          }
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Tanlanganlik indikatori (Sariq aylanma hoshiya)
+        if (this.selected) {
+          ctx.save();
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, this.radius + 8, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Kichik nishon burchaklari
+          const s = this.radius + 10;
+          ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+          ctx.lineWidth = 2;
+          [-1, 1].forEach(sx => {
+            [-1, 1].forEach(sy => {
+              ctx.beginPath();
+              ctx.moveTo(sx * s, sy * (s - 5));
+              ctx.lineTo(sx * s, sy * s);
+              ctx.lineTo(sx * (s - 5), sy * s);
+              ctx.stroke();
+            });
+          });
+          ctx.restore();
+        }
+
+        // Birlik yo'nalishi bo'yicha burilish
+        ctx.rotate(this.angle);
+
+        // Har xil birliklar uchun alohida grafikalar
+        if (this.unitKind === 'tank') {
+          // Tank tanasi (Gusenitsa va korpus)
+          // Gusenitsalar
+          ctx.fillStyle = '#222222';
+          ctx.fillRect(-this.radius, -this.radius, this.radius * 2, 5);
+          ctx.fillRect(-this.radius, this.radius - 5, this.radius * 2, 5);
+
+          // Asosiy zirhli korpus (Qizil harbiy)
+          ctx.fillStyle = this.color;
+          ctx.fillRect(-this.radius + 2, -this.radius + 4, this.radius * 2 - 4, this.radius * 2 - 8);
+
+          ctx.strokeStyle = '#5a1212';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-this.radius + 2, -this.radius + 4, this.radius * 2 - 4, this.radius * 2 - 8);
+
+          // Minora (Turret)
+          ctx.fillStyle = '#8b1818';
+          ctx.beginPath();
+          ctx.arc(0, 0, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Dulo (Zambarak bochkalari)
+          ctx.fillStyle = '#111';
+          ctx.fillRect(4, -2.5, 14, 5);
+        } else {
+          // Ishchi (Worker) - Ko'k doira + mini texnika ko'rinishi
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.beginPath();
+          ctx.arc(2, 2, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#4fa3e3';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Ishchi asbobi / kran / kursor belgisi
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(0, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Yo'nalish ko'rsatkichi
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(4, 0);
+          ctx.lineTo(this.radius + 4, 0);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // ==========================================
+    // 3. BOSHLANG'ICH XARITA VA OBYEKTLAR
+    // ==========================================
+    function initGame() {
+      state.entities = [];
+
+      // 1. HQ (Bosh bino)
+      const hq = new Headquarters(80, 240);
+      state.entities.push(hq);
+
+      // 2. Ishchi (Worker) - Ko'k doira, tezligi 2
+      const worker = new Unit(230, 260, 13, 2.0, '#1e88e5', 'Ishchi (Worker)', 'worker');
+      state.entities.push(worker);
+
+      // 3. Tank - Qizil rangli doira, tezligi 1.5
+      const tank = new Unit(230, 330, 15, 1.5, '#e53935', 'Jangovar Tank', 'tank');
+      state.entities.push(tank);
+
+      updateUI();
+    }
+
+    // ==========================================
+    // 4. QURILISH MEXANIKASI (KAZARMA)
+    // ==========================================
+    function buildBarracks() {
+      const COST = 500;
+      if (state.money < COST) {
+        notify(`Mablag' yetarli emas! Kazarma uchun $${COST} talab etiladi.`, true);
+        return;
+      }
+
+      state.money -= COST;
+
+      // Xaritadan qulay tasodifiy koordinatani topish
+      // HQ atrofida yoki o'ngroq tomonda paydo qilish
+      const margin = 80;
+      const x = Math.floor(Math.random() * (450 - 250) + 250);
+      const y = Math.floor(Math.random() * (canvas.height - 2 * margin) + margin);
+
+      const barracks = new Barracks(x, y);
+      state.entities.push(barracks);
+
+      notify(`Yangi Kazarma qurildi! (-$500). Koordinata: [${x}, ${y}]`);
+      updateUI();
+
+      // Qurilish effekti (chang/zarrachalar)
+      createConstructionSparks(x + 40, y + 35);
+    }
+
+    // ==========================================
+    // 5. INTERAKTIV BOSHQARUV (SICHQONCHA & KLAVIATURA)
+    // ==========================================
+
+    // Xaritadagi nishon marker animatsiyasi
+    function addTargetMarker(x, y) {
+      state.targetMarkers.push({
+        x: x,
+        y: y,
+        radius: 3,
+        maxRadius: 18,
+        alpha: 1.0
+      });
+    }
+
+    function createConstructionSparks(cx, cy) {
+      for (let i = 0; i < 20; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        state.particles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1.0,
+          color: Math.random() > 0.5 ? '#ffd152' : '#85643e'
+        });
+      }
+    }
+
+    // Sichqoncha koordinatasini olish
+    function getCanvasCoordinates(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    // Sichqoncha tugmasi bosilganda
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Faqat chap tugma (Left click)
+
+      const { x, y } = getCanvasCoordinates(e);
+
+      // Biror obyekt bosilganini tekshirish (oxirgisidan boshlab tekshiramiz)
+      let clickedEntity = null;
+      for (let i = state.entities.length - 1; i >= 0; i--) {
+        if (state.entities[i].containsPoint(x, y)) {
+          clickedEntity = state.entities[i];
+          break;
+        }
+      }
+
+      if (clickedEntity) {
+        // Obyektni tanlash
+        state.entities.forEach(ent => ent.selected = false);
+        clickedEntity.selected = true;
+        state.selectedEntity = clickedEntity;
+        notify(`${clickedEntity.displayName} tanlandi.`);
+      } else {
+        // Bo'sh joy bosildi
+        if (state.selectedEntity && state.selectedEntity.type === 'unit') {
+          // Tanlangan birlikni o'sha nuqtaga yo'naltirish
+          state.selectedEntity.moveTo(x, y);
+          addTargetMarker(x, y);
+          notify(`${state.selectedEntity.displayName} harakatlanmoqda: [${Math.round(x)}, ${Math.round(y)}]`);
+        } else {
+          // Tanlovni bekor qilish
+          if (state.selectedEntity) {
+            state.entities.forEach(ent => ent.selected = false);
+            state.selectedEntity = null;
+            notify("Tanlov bekor qilindi.");
+          }
+        }
+      }
+
+      updateUI();
+    });
+
+    // Klaviatura tugmalari tinglovchisi
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'q' || e.key === 'Q') {
+        buildBarracks();
+      }
+    });
+
+    // UI tugma orqali qurish
+    buildBtn.addEventListener('click', () => {
+      buildBarracks();
+    });
+
+    // ==========================================
+    // 6. RENDERLASH VA GRAFIKA (CANVAS GRID & LOOP)
+    // ==========================================
+
+    // Harbiy koordinatali maydon to'ri (Grid)
+    function drawGrid(ctx) {
+      const gridSize = 40;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(70, 115, 70, 0.15)';
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Koordinata belgilari
+      ctx.fillStyle = 'rgba(90, 140, 90, 0.3)';
+      ctx.font = '9px Consolas, monospace';
+      for (let x = 80; x < canvas.width; x += 160) {
+        for (let y = 80; y < canvas.height; y += 160) {
+          ctx.fillText(`+ [${x},${y}]`, x + 3, y - 3);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // Harakatlanish nishoni animatsiyalari
+    function drawMarkersAndParticles(ctx) {
+      // Nishon to'lqini
+      for (let i = state.targetMarkers.length - 1; i >= 0; i--) {
+        const m = state.targetMarkers[i];
+        ctx.save();
+        ctx.strokeStyle = `rgba(77, 255, 77, ${m.alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(m.x - 5, m.y);
+        ctx.lineTo(m.x + 5, m.y);
+        ctx.moveTo(m.x, m.y - 5);
+        ctx.lineTo(m.x, m.y + 5);
+        ctx.stroke();
+        ctx.restore();
+
+        m.radius += 0.8;
+        m.alpha -= 0.04;
+        if (m.alpha <= 0) {
+          state.targetMarkers.splice(i, 1);
+        }
+      }
+
+      // Chang / uchqun zarralari
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.03;
+        if (p.alpha <= 0) {
+          state.particles.splice(i, 1);
+        }
+      }
+    }
+
+    // Asosiy o'yin sikli (Main Game Loop)
+    function gameLoop() {
+      // 1. Maydonni tozalash
+      ctx.fillStyle = '#1a2e1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 2. Harbiy to'r (Grid)
+      drawGrid(ctx);
+
+      // 3. Obyektlarni yangilash va chizish
+      state.entities.forEach(entity => {
+        entity.update();
+        entity.draw(ctx);
+      });
+
+      // 4. Marker va vizual effektlar
+      drawMarkersAndParticles(ctx);
+
+      // Keyingi kadr
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Dasturni ishga tushirish
+    initGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
