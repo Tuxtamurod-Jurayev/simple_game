@@ -1,51 +1,53 @@
-# Command & Conquer: Generals (Tactical Web RTS) 🎮
+# Command & Conquer: Generals (React + Vite + TypeScript RTS) 🎮
 
-Brauzerda ishlaydigan, *Command & Conquer: Generals* o'yinining haqiqiy harbiy modellari, fizikasi, ovoz effektlari va taktik mini-xaritasiga ega ilg'or RTS strategiya o'yini.
-
----
-
-## 🎖 Asosiy Xususiyatlar va Modellar
-
-### 1. Generals uslubidagi Haqiqiy Harbiy Modellar
-* **Crusader Tank (USA) & Scorpion Tank (GLA):**
-  * Tishli gusenitsalar va qiya zirh plitalari.
-  * Korpusdan mustaqil ravishda nishonga buriluvchi **360° Minora (Turret)**.
-  * O'q uzilganda **Zambarak orqaga qaytishi (Recoil)** va olovli snaryad chaqnashi.
-  * Harakatlanganda erda haqiqiy **gusenitsa izlari (Tread Tracks)** qoladi.
-* **Supply Truck (Resurs tashuvchi yuk mashinasi):**
-  * 6 ta g'ildirakli og'ir harbiy yuk mashinasi, kabina va faralar.
-  * Kon ustidan avtomatik ravishda sariq **Resurs Qutilarini (Supply Crates)** yuklab bazaga olib keladi.
-* **US Ranger & GLA Rebel (Mergan askarlar):**
-  * Harbiy kaska (Kevlar), bronjilet (Flak jacket), avtomat va yurish animatsiyasi.
-* **Harbiy Binolar:**
-  * **Command Center (HQ):** Vertolyot maydonchasi (Helipad 'H'), aylanuvchi radar antennasi va miltillovchi qizil mayoq chirog'i.
-  * **War Factory (Zavod):** Sariq-qora ogohlantiruvchi chiziqli (Hazard Stripes) katta angar darvozalari va kran relslari.
-  * **Barracks (Kazarma):** Yarim doiraviy bunker va qum qoplari.
-  * **Supply Dock:** Moviy, yashil va qizil ISO yuk konteynerlari va kran.
-
-### 2. Taktik Radar (Minimap) va Boshqaruv Paneli
-* O'ng yuqorida aylanuvchi taktik **Radar (Minimap)** bo'lib, o'yinchi (yashil), dushman (qizil) va resurslarni real vaqtda ko'rsatadi.
-* Pastki qismda tanlangan birlikning **portreti**, aniq HP chizig'i va nomi aks etadigan C&C Generals HUD mavjud.
-
-### 3. Procedural Ovoz Tizimi (Zero External Files)
-* Hech qanday tashqi audio fayllarsiz Web Audio API orqali generatsiya qilinadigan:
-  * Tank zambaragining og'ir "BUM" ovozi.
-  * Avtomatning tezkor o'q uzish ovozi.
-  * Harbiy ratsiya va tanlash signallari.
-  * Resurs olib kelinganda tanga ovozi.
-  * Kuchli portlash va g'alaba signallari.
+Brauzerda ishlaydigan, **React 18 + Vite + TypeScript** arxitekturasiga ega to'liq modulli va zamonaviy real vaqt strategiya (RTS) o'yini.
 
 ---
 
-## 🕹 Boshqaruv va Tezkor Klavishlar
-* **Sichqonchaning chap tugmasi:** Birlik/binoni tanlash va yangi nuqtaga harakatlantirish.
+## 🚀 3-Bosqich Yangiliklari: React, TypeScript va Guruhlab Tanlash (Box Selection)
+
+### 1. Arxitektura va Modullik
+* **React 18 & TypeScript:** To'liq tiplashtirilgan interfeyslar (`Unit`, `Building`, `GameState`, `Projectile`).
+* **Komponentlar:**
+  * `GameCanvas.tsx` — 60 FPS Canvas 2D render sikli, fizika, jang va ramkali tanlash.
+  * `UIOverlay.tsx` — Mablag', energiya, dushman HQ va audio sozlamalari.
+  * `BuildMenu.tsx` — Generals uslubidagi tanlangan obyekt kartasi va tezkor ishlab chiqarish menyusi.
+  * `audio.ts` — Web Audio API orqali procedural tovushlar.
+
+### 2. Ramkali Guruhlab Tanlash (Box / Drag Selection)
+* Sichqonchaning chap tugmasini bosib ramka tortish orqali bir vaqtning o'zida butun qo'shinni (tanklar, ishchilar, askarlar) tanlash mumkin!
+* O'ng tugma (yoki bo'sh joyga bosish) orqali tanlangan butun guruh taktik safda (formation) yangi koordinataga yo'l oladi.
+
+### 3. C&C Generals Vizual Modellari va Jang Tizimi
+* **Crusader Tank:** Tishli gusenitsalar, erga tushadigan izlar, mustaqil 360° aylanuvchi minora va recoil animatsiyasi.
+* **Supply Truck:** 6 g'ildirakli og'ir transport, sariq resurs qutilarini yuklash/tushirish.
+* **US Ranger:** Flak jilet, kaska, avtomat va yurish animatsiyasi.
+* **USA Command Center:** Helipad ("H"), aylanuvchi radar va miltillovchi qizil mayoq.
+* **War Factory & Barracks:** Angar darvozalari, qum qopli bunkerlar.
+* **Taktik Radar (Minimap):** Jonli mini-xarita va radar nuri aylanishi.
+
+---
+
+## 🕹 Boshqaruv
+* **Sichqonchaning chap tugmasi:** Biror obyektni tanlash yoki ramka chizib **guruhlab tanlash**.
+* **Sichqonchaning o'ng tugmasi (yoki chap tugma):** Tanlangan guruhni harakatlantirish.
 * <kbd>Q</kbd> — Kazarma (Barracks) qurish ($500)
 * <kbd>W</kbd> — Zavod (War Factory) qurish ($800)
-* <kbd>E</kbd> — Ishchi yuk mashinasi (Supply Truck) chiqarish ($200)
-* <kbd>R</kbd> — Mergan askar (US Ranger) tayyorlash ($150)
+* <kbd>E</kbd> — Supply Truck chiqarish ($200)
+* <kbd>R</kbd> — US Ranger askar tayyorlash ($150)
 * <kbd>T</kbd> — Crusader Tank ishlab chiqarish ($600)
 
 ---
 
-## 🚀 Ishga tushirish
-Fayl hech qanday qo'shimcha o'rnatish talab qilmaydi. `index.html` faylini istalgan brauzerda oching.
+## 🛠 O'rnatish va Ishga tushirish
+
+```bash
+# Qaramliklarni o'rnatish
+npm install
+
+# Ishchi serverni ishga tushirish (Vite)
+npm run dev
+
+# Ishlab chiqarish uchun build qilish
+npm run build
+```
