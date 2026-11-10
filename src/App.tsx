@@ -63,6 +63,7 @@ export default function App() {
 
   // Camera & Fog of War
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, speed: 12 });
+  const [cameraJump, setCameraJump] = useState<{ x: number; y: number; timestamp: number } | null>(null);
   const fogSystemRef = useRef<FogOfWarSystem>(new FogOfWarSystem());
   const aiSystemRef = useRef<AISystem>(new AISystem());
 
@@ -633,6 +634,7 @@ export default function App() {
         onDeductCredits={amt => setCredits(prev => Math.max(0, prev - amt))}
         audioEnabled={audioEnabled}
         screenShake={screenShake}
+        cameraJump={cameraJump}
       />
 
       {/* C&C GENERALS TAKTIK HUD VA BOSHQARUV PULTI (100% O'ZBEKCHA) */}
@@ -670,6 +672,7 @@ export default function App() {
         onTacticalCommand={handleTacticalCommand}
         placingBuildingType={placingBuildingType}
         targetingSuperweapon={targetingSuperweapon}
+        onMinimapJump={(wx, wy) => setCameraJump({ x: wx, y: wy, timestamp: Date.now() })}
       />
 
       {/* G'alaba / Mag'lubiyat oynasi */}

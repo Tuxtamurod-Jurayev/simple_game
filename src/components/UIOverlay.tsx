@@ -11,7 +11,6 @@ import {
 import { FogOfWarSystem } from '../systems/fogOfWarSystem';
 import { TopTacticalBar } from './TopTacticalBar';
 import { CommandHUD } from './CommandHUD';
-import { MissionSequenceBar } from './MissionSequenceBar';
 
 interface UIOverlayProps {
   faction: Faction;
@@ -43,6 +42,7 @@ interface UIOverlayProps {
 
   placingBuildingType: BuildingTypeId | null;
   targetingSuperweapon: boolean;
+  onMinimapJump?: (worldX: number, worldY: number) => void;
 }
 
 export const UIOverlay: React.FC<UIOverlayProps> = ({
@@ -71,7 +71,8 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   isSuperweaponReady,
   onTacticalCommand,
   placingBuildingType,
-  targetingSuperweapon
+  targetingSuperweapon,
+  onMinimapJump
 }) => {
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between overflow-hidden">
@@ -92,10 +93,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         />
       </div>
 
-      {/* 2. JANG KETMA-KETLIGI & MISSIYA VAZIFALARI */}
-      <MissionSequenceBar buildings={buildings} units={units} />
-
-      {/* 3. CENTER TACTICAL NOTIFICATIONS */}
+      {/* 2. CENTER TACTICAL NOTIFICATIONS */}
       <div className="flex flex-col items-center gap-1.5 pointer-events-none mb-1 px-2">
         {targetingSuperweapon && (
           <div className="bg-red-950/95 border border-red-500 text-red-200 font-mono text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded shadow-xl animate-pulse text-center">
@@ -109,7 +107,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         )}
       </div>
 
-      {/* 4. BOTTOM COMMAND & CONQUER HUD BAR */}
+      {/* 3. BOTTOM COMMAND & CONQUER HUD BAR */}
       <div className="pointer-events-auto flex justify-center w-full px-1">
         <CommandHUD
           faction={faction}
@@ -126,6 +124,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
           onTriggerSuperweaponTargetMode={onTriggerSuperweaponTargetMode}
           isSuperweaponReady={isSuperweaponReady}
           onTacticalCommand={onTacticalCommand}
+          onMinimapJump={onMinimapJump}
         />
       </div>
     </div>

@@ -51,6 +51,7 @@ interface ThreeGameCanvasProps {
   onDeductCredits: (amount: number) => void;
   audioEnabled: boolean;
   screenShake: number;
+  cameraJump?: { x: number; y: number; timestamp: number } | null;
 }
 
 export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
@@ -79,7 +80,8 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   credits,
   onDeductCredits,
   audioEnabled,
-  screenShake
+  screenShake,
+  cameraJump
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -209,6 +211,13 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   useEffect(() => {
     audio3DRef.current.enabled = audioEnabled;
   }, [audioEnabled]);
+
+  // Jump camera when clicked on Minimap
+  useEffect(() => {
+    if (cameraJump && rtsCameraRef.current) {
+      rtsCameraRef.current.setTarget(cameraJump.x * 0.1, cameraJump.y * 0.1, false);
+    }
+  }, [cameraJump]);
 
   // Main 60 FPS Render Loop
   useEffect(() => {
@@ -358,10 +367,10 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           setBuildings(prev => [...prev, newBuilding]);
           audio3DRef.current.playBuildSound();
           audio3DRef.current.speak('buildComplete', faction);
+          setPlacingBuildingType(null);
+          if (ghostMeshRef.current) ghostMeshRef.current.visible = false;
         }
       }
-      setPlacingBuildingType(null);
-      if (ghostMeshRef.current) ghostMeshRef.current.visible = false;
       return;
     }
 
@@ -483,24 +492,10 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
         });
 
         if (clickedUnit) {
+          setSelectedUnits([clickedUnit]);
+          setSelectedBuilding(null);
           if (clickedUnit.team === 'player') {
-            setSelectedUnits([clickedUnit]);
-            setSelectedBuilding(null);
             audio3DRef.current.speak('select', clickedUnit.faction);
-          } else {
-            // Target enemy with currently selected units
-            if (selectedUnits.length > 0) {
-              if (moveMarkerRef.current) {
-                moveMarkerRef.current.position.set(clickedUnit.x * 0.1, 0.12, clickedUnit.y * 0.1);
-                (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
-                moveMarkerRef.current.visible = true;
-                moveMarkerTimer.current = 0.65;
-              }
-              setUnits(prev =>
-                prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: clickedUnit.x, targetY: clickedUnit.y } : u))
-              );
-              audio3DRef.current.speak('attack', faction);
-            }
           }
         } else {
           // 2. Check building under cursor
@@ -509,26 +504,8 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           });
 
           if (clickedBuilding) {
-            if (clickedBuilding.team === 'player') {
-              setSelectedBuilding(clickedBuilding);
-              setSelectedUnits([]);
-            } else {
-              // Target enemy building with currently selected units
-              if (selectedUnits.length > 0) {
-                const bCenterX = clickedBuilding.x + clickedBuilding.width / 2;
-                const bCenterY = clickedBuilding.y + clickedBuilding.height / 2;
-                if (moveMarkerRef.current) {
-                  moveMarkerRef.current.position.set(bCenterX * 0.1, 0.12, bCenterY * 0.1);
-                  (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
-                  moveMarkerRef.current.visible = true;
-                  moveMarkerTimer.current = 0.65;
-                }
-                setUnits(prev =>
-                  prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: bCenterX, targetY: bCenterY } : u))
-                );
-                audio3DRef.current.speak('attack', faction);
-              }
-            }
+            setSelectedBuilding(clickedBuilding);
+            setSelectedUnits([]);
           } else {
             // Deselect all
             setSelectedUnits([]);
@@ -542,7 +519,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       const dummyVec = new THREE.Vector3();
 
       for (const u of units) {
-        if (u.team === 'player') {
+        if (u.team === 'player' && u.hp > 0) {
           dummyVec.set(u.x * 0.1, u.isFlying ? 18 : 0, u.y * 0.1);
           const screenPos = rtsCam.worldToScreen(dummyVec, rect);
           if (
@@ -577,14 +554,16 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       return;
     }
 
+    // Cancel superweapon targeting
     if (targetingSuperweapon) {
       setTargetingSuperweapon(false);
       return;
     }
 
+    const playerUnits = selectedUnits.filter(u => u.team === 'player' && u.hp > 0);
     const canvas = canvasRef.current;
     const rtsCam = rtsCameraRef.current;
-    if (!canvas || !rtsCam || selectedUnits.length === 0) return;
+    if (!canvas || !rtsCam || playerUnits.length === 0) return;
 
     const rect = canvas.getBoundingClientRect();
     const hit = rtsCam.getGroundIntersection(e.clientX, e.clientY, rect);
@@ -593,50 +572,101 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const worldX = hit.x * 10;
     const worldY = hit.z * 10;
 
-    // Check if right-clicked on an enemy unit or building
-    const enemyUnit = units.find(u => u.team === 'enemy' && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
-    const enemyBuilding = buildings.find(b => b.team === 'enemy' && worldX >= b.x && worldX <= b.x + b.width && worldY >= b.y && worldY <= b.y + b.height);
-
-    if (enemyUnit || enemyBuilding) {
-      const tx = enemyUnit ? enemyUnit.x : (enemyBuilding!.x + enemyBuilding!.width / 2);
-      const ty = enemyUnit ? enemyUnit.y : (enemyBuilding!.y + enemyBuilding!.height / 2);
-
-      // Show RED attack marker
+    // A. Check if right-clicked on an enemy unit
+    const enemyUnit = units.find(u => u.team === 'enemy' && u.hp > 0 && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
+    if (enemyUnit) {
       if (moveMarkerRef.current) {
-        moveMarkerRef.current.position.set(tx * 0.1, 0.12, ty * 0.1);
-        (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xef4444);
+        moveMarkerRef.current.position.set(enemyUnit.x * 0.1, 0.12, enemyUnit.y * 0.1);
+        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
+        mat.color.setHex(0xef4444);
+        mat.opacity = 0.9;
+        moveMarkerRef.current.scale.set(1, 1, 1);
         moveMarkerRef.current.visible = true;
-        moveMarkerTimer.current = 0.7;
+        moveMarkerTimer.current = 0.65;
       }
 
       setUnits(prev =>
-        prev.map(u => (selectedUnits.some(su => su.id === u.id) ? { ...u, targetX: tx, targetY: ty } : u))
+        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: enemyUnit.x, targetY: enemyUnit.y } : u))
       );
       audio3DRef.current.speak('attack', faction);
       return;
     }
 
-    // Show GREEN move waypoint marker in 3D
+    // B. Check if right-clicked on an enemy building
+    const enemyBuilding = buildings.find(
+      b => b.team === 'enemy' && b.hp > 0 && worldX >= b.x && worldX <= b.x + b.width && worldY >= b.y && worldY <= b.y + b.height
+    );
+    if (enemyBuilding) {
+      const bCenterX = enemyBuilding.x + enemyBuilding.width / 2;
+      const bCenterY = enemyBuilding.y + enemyBuilding.height / 2;
+
+      if (moveMarkerRef.current) {
+        moveMarkerRef.current.position.set(bCenterX * 0.1, 0.12, bCenterY * 0.1);
+        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
+        mat.color.setHex(0xef4444);
+        mat.opacity = 0.9;
+        moveMarkerRef.current.scale.set(1, 1, 1);
+        moveMarkerRef.current.visible = true;
+        moveMarkerTimer.current = 0.65;
+      }
+
+      setUnits(prev =>
+        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: bCenterX, targetY: bCenterY } : u))
+      );
+      audio3DRef.current.speak('attack', faction);
+      return;
+    }
+
+    // C. Check if right-clicked on a Supply Dock (for Harvesters)
+    const clickedDock = supplyDocks.find(
+      sd => worldX >= sd.x - 20 && worldX <= sd.x + sd.width + 20 && worldY >= sd.y - 20 && worldY <= sd.y + sd.height + 20
+    );
+    const hasHarvester = playerUnits.some(u => u.type.includes('Supply') || u.type.includes('Worker'));
+
+    if (clickedDock && hasHarvester) {
+      const dockCX = clickedDock.x + clickedDock.width / 2;
+      const dockCY = clickedDock.y + clickedDock.height / 2;
+
+      if (moveMarkerRef.current) {
+        moveMarkerRef.current.position.set(dockCX * 0.1, 0.12, dockCY * 0.1);
+        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
+        mat.color.setHex(0xf59e0b);
+        mat.opacity = 0.9;
+        moveMarkerRef.current.scale.set(1, 1, 1);
+        moveMarkerRef.current.visible = true;
+        moveMarkerTimer.current = 0.65;
+      }
+
+      setUnits(prev =>
+        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: dockCX, targetY: dockCY } : u))
+      );
+      audio3DRef.current.speak('move', faction);
+      return;
+    }
+
+    // D. Right-click on Ground: Tactical Formation Movement
     if (moveMarkerRef.current) {
       moveMarkerRef.current.position.set(hit.x, 0.12, hit.z);
-      (moveMarkerRef.current.material as THREE.MeshBasicMaterial).color.setHex(0x10b981);
+      const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
+      mat.color.setHex(0x10b981);
+      mat.opacity = 0.9;
+      moveMarkerRef.current.scale.set(1, 1, 1);
       moveMarkerRef.current.visible = true;
       moveMarkerTimer.current = 0.55;
     }
 
-    // Issue formation movement to selected units
-    const count = selectedUnits.length;
-    const spacing = 45;
+    const count = playerUnits.length;
+    const spacing = 40;
     const cols = Math.ceil(Math.sqrt(count));
 
     setUnits(prev =>
       prev.map(u => {
-        const idx = selectedUnits.findIndex(su => su.id === u.id);
+        const idx = playerUnits.findIndex(pu => pu.id === u.id);
         if (idx !== -1) {
           const row = Math.floor(idx / cols);
           const col = idx % cols;
-          const targetX = worldX + (col - cols / 2) * spacing;
-          const targetY = worldY + (row - cols / 2) * spacing;
+          const targetX = worldX + (col - (cols - 1) / 2) * spacing;
+          const targetY = worldY + (row - (cols - 1) / 2) * spacing;
           return { ...u, targetX, targetY };
         }
         return u;

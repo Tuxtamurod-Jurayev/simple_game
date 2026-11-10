@@ -25,6 +25,7 @@ interface CommandHUDProps {
   onTriggerSuperweaponTargetMode: () => void;
   isSuperweaponReady: boolean;
   onTacticalCommand: (command: 'stop' | 'scatter' | 'guard') => void;
+  onMinimapJump?: (worldX: number, worldY: number) => void;
 }
 
 export const CommandHUD: React.FC<CommandHUDProps> = ({
@@ -41,7 +42,8 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
   onTrainUnit,
   onTriggerSuperweaponTargetMode,
   isSuperweaponReady,
-  onTacticalCommand
+  onTacticalCommand,
+  onMinimapJump
 }) => {
   const minimapCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const portraitCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -107,6 +109,9 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
     const targetWorldY = (clickY / rect.height) * WORLD_HEIGHT;
 
     if (e.button === 0) {
+      if (onMinimapJump) {
+        onMinimapJump(targetWorldX, targetWorldY);
+      }
       setCamera(prev => ({
         ...prev,
         x: Math.max(0, Math.min(WORLD_WIDTH - 1100, targetWorldX - 550)),
