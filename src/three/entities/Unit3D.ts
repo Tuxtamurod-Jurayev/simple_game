@@ -27,10 +27,11 @@ export class Unit3DManager {
   private matEnemyArmor = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.4, roughness: 0.5 });
   private matTreads = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9, metalness: 0.2 });
   private matDarkMetal = new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.7, roughness: 0.3 });
-  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.75, roughness: 0.25 });
+  private matGunMetal = new THREE.MeshStandardMaterial({ color: 0x1c1917, metalness: 0.85, roughness: 0.2 });
   private matGlass = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.1 });
   private matSelectRing = new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true });
   private matShadow = new THREE.MeshBasicMaterial({ color: 0x09090b, transparent: true, opacity: 0.45 });
+  private matMissileRed = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.4 });
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -67,8 +68,128 @@ export class Unit3DManager {
     root.add(selectionRing);
 
     // 2. Specific 3D Geometry by Unit Type
-    if (u.type === 'Overlord') {
-      // Massive 4-Track Heavy Monster Tank
+    if (u.type === 'USA_Raptor' || u.type === 'China_MiG') {
+      // Reaktiv Qiruvchi Samolyot (Jet Fighter)
+      // Fuselage body
+      const fuseGeo = new THREE.ConeGeometry(0.85, 4.8, 6);
+      fuseGeo.rotateX(Math.PI / 2);
+      const fuselage = new THREE.Mesh(fuseGeo, unitMat);
+      fuselage.castShadow = true;
+      chassis.add(fuselage);
+
+      // Delta Wings
+      const wingGeo = new THREE.BoxGeometry(4.8, 0.08, 2.2);
+      const wings = new THREE.Mesh(wingGeo, unitMat);
+      wings.position.set(0, 0, -0.2);
+      wings.castShadow = true;
+      chassis.add(wings);
+
+      // Twin Tailfins
+      const tailL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.1, 1.0), unitMat);
+      tailL.rotation.z = -Math.PI / 8;
+      tailL.position.set(-0.65, 0.6, -1.8);
+      const tailR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.1, 1.0), unitMat);
+      tailR.rotation.z = Math.PI / 8;
+      tailR.position.set(0.65, 0.6, -1.8);
+      chassis.add(tailL);
+      chassis.add(tailR);
+
+      // Glass Cockpit Canopy
+      const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), this.matGlass);
+      cockpit.scale.set(0.7, 0.6, 1.8);
+      cockpit.position.set(0, 0.35, 0.8);
+      chassis.add(cockpit);
+
+      // Wing-mounted missiles
+      for (const wx of [-1.8, 1.8]) {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 6), this.matMissileRed);
+        m.rotateX(Math.PI / 2);
+        m.position.set(wx, -0.15, 0);
+        chassis.add(m);
+      }
+
+      // Shadow disc on ground
+      const shadowGeo = new THREE.CircleGeometry(2.2, 16);
+      shadowGeo.rotateX(-Math.PI / 2);
+      shadowDisc = new THREE.Mesh(shadowGeo, this.matShadow);
+      shadowDisc.position.y = 0.06;
+      root.add(shadowDisc);
+
+    } else if (u.type === 'USA_Comanche' || u.type === 'China_Helix') {
+      // Hujumkor Jangovar Vertolyot (Attack Chopper)
+      const fusGeo = new THREE.BoxGeometry(1.4, 1.5, 4.2);
+      const fuselage = new THREE.Mesh(fusGeo, unitMat);
+      fuselage.castShadow = true;
+      chassis.add(fuselage);
+
+      // Tail boom
+      const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.4, 3.2, 6), unitMat);
+      boom.rotateX(Math.PI / 2);
+      boom.position.set(0, 0.2, -3.2);
+      chassis.add(boom);
+
+      // Main Rotor (Spinning blades)
+      const rotorGeo = new THREE.BoxGeometry(5.8, 0.05, 0.35);
+      const rotor = new THREE.Mesh(rotorGeo, this.matDarkMetal);
+      rotor.position.set(0, 1.1, 0.2);
+      chassis.add(rotor);
+      rotors.push(rotor);
+
+      if (u.type === 'China_Helix') {
+        // Coaxial second rotor
+        const rotor2 = new THREE.Mesh(rotorGeo, this.matDarkMetal);
+        rotor2.position.set(0, 1.4, 0.2);
+        chassis.add(rotor2);
+        rotors.push(rotor2);
+      }
+
+      // Chin 20mm Gatling Turret
+      const chinGun = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.2, 6), this.matGunMetal);
+      chinGun.rotateX(Math.PI / 2);
+      chinGun.position.set(0, -0.6, 2.0);
+      chassis.add(chinGun);
+      turret = chinGun;
+      barrels.push(chinGun);
+
+      // Stub wings with rocket pods
+      for (const sx of [-1.2, 1.2]) {
+        const pod = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.2, 6), this.matDarkMetal);
+        pod.rotateX(Math.PI / 2);
+        pod.position.set(sx, -0.2, 0.3);
+        chassis.add(pod);
+      }
+
+      const shadowGeo = new THREE.CircleGeometry(2.4, 16);
+      shadowGeo.rotateX(-Math.PI / 2);
+      shadowDisc = new THREE.Mesh(shadowGeo, this.matShadow);
+      shadowDisc.position.y = 0.06;
+      root.add(shadowDisc);
+
+    } else if (u.type === 'SupplyChinook') {
+      // Twin-Rotor Supply Chinook
+      const fusGeo = new THREE.BoxGeometry(1.8, 1.6, 4.6);
+      const fuselage = new THREE.Mesh(fusGeo, unitMat);
+      fuselage.castShadow = true;
+      chassis.add(fuselage);
+
+      // Front & Rear Rotors
+      const rotorGeo = new THREE.BoxGeometry(5.4, 0.05, 0.35);
+      const frontRotor = new THREE.Mesh(rotorGeo, this.matDarkMetal);
+      frontRotor.position.set(0, 1.2, 1.5);
+      const rearRotor = new THREE.Mesh(rotorGeo, this.matDarkMetal);
+      rearRotor.position.set(0, 1.4, -1.5);
+      chassis.add(frontRotor);
+      chassis.add(rearRotor);
+      rotors.push(frontRotor, rearRotor);
+
+      const shadowGeo = new THREE.CircleGeometry(2.6, 16);
+      shadowGeo.rotateX(-Math.PI / 2);
+      shadowDisc = new THREE.Mesh(shadowGeo, this.matShadow);
+      shadowDisc.position.y = 0.06;
+      root.add(shadowDisc);
+
+    } else if (u.type === 'Overlord') {
+      // Ulkan 4-Gusenitsali Overlord Super Tank
       const bodyGeo = new THREE.BoxGeometry(3.6, 1.2, 4.4);
       const body = new THREE.Mesh(bodyGeo, unitMat);
       body.position.y = 1.0;
@@ -98,7 +219,7 @@ export class Unit3DManager {
       turret.castShadow = true;
       chassis.add(turret);
 
-      // Twin Cannons
+      // Twin Parallel Heavy Cannons
       const bGeo = new THREE.CylinderGeometry(0.18, 0.22, 3.2, 8);
       bGeo.rotateX(Math.PI / 2);
       const b1 = new THREE.Mesh(bGeo, this.matGunMetal);
@@ -109,8 +230,31 @@ export class Unit3DManager {
       turret.add(b2);
       barrels.push(b1, b2);
 
+    } else if (u.type === 'GLA_RocketBuggy') {
+      // Raketa Baggi (GLA Rocket Buggy)
+      const bFrame = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 2.6), unitMat);
+      bFrame.position.y = 0.6;
+      chassis.add(bFrame);
+
+      // 4 Wide Sand Wheels
+      for (const [wx, wy, wz] of [[-0.95, 0.45, -0.9], [-0.95, 0.45, 0.9], [0.95, 0.45, -0.9], [0.95, 0.45, 0.9]]) {
+        const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.4, 10), this.matTreads);
+        wh.rotateZ(Math.PI / 2);
+        wh.position.set(wx, wy, wz);
+        chassis.add(wh);
+      }
+
+      // Rear 6-Tube Rocket Rack
+      turret = new THREE.Group();
+      turret.position.set(0, 1.2, -0.3);
+      const rack = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.4), this.matDarkMetal);
+      rack.rotation.x = -Math.PI / 8;
+      turret.add(rack);
+      chassis.add(turret);
+      barrels.push(rack);
+
     } else if (u.type.includes('Tank') || u.type === 'Crusader' || u.type === 'Paladin' || u.type === 'Battlemaster' || u.type === 'Scorpion' || u.type === 'Marauder') {
-      // Standard Battle Tank
+      // Asosiy Jangovar Tank
       const bodyGeo = new THREE.BoxGeometry(2.2, 0.8, 3.2);
       const body = new THREE.Mesh(bodyGeo, unitMat);
       body.position.y = 0.75;
@@ -134,7 +278,7 @@ export class Unit3DManager {
       chassis.add(turret);
 
       if (u.type === 'GattlingTank') {
-        // Spinning 6-Barrel Gatling cluster
+        // Spinning 6-barrel Gatling cluster
         const gCluster = new THREE.Group();
         gCluster.position.set(0, 0.1, 1.6);
         for (let i = 0; i < 6; i++) {
@@ -159,64 +303,30 @@ export class Unit3DManager {
       }
 
       if (u.type === 'Paladin') {
-        // Point Defense Laser Emitter
         const pdlGeo = new THREE.SphereGeometry(0.25, 8, 8);
         const pdl = new THREE.Mesh(pdlGeo, this.matGlass);
         pdl.position.set(0.65, 0.45, -0.3);
         turret.add(pdl);
       }
 
-    } else if (u.isFlying || u.type === 'SupplyChinook') {
-      // Twin-Rotor Supply Chinook Helicopter
-      const fusGeo = new THREE.BoxGeometry(1.8, 1.6, 4.6);
-      const fuselage = new THREE.Mesh(fusGeo, unitMat);
-      fuselage.position.y = 0;
-      fuselage.castShadow = true;
-      chassis.add(fuselage);
-
-      // Cockpit nose
-      const noseGeo = new THREE.ConeGeometry(0.9, 1.2, 4);
-      noseGeo.rotateX(Math.PI / 2);
-      const nose = new THREE.Mesh(noseGeo, this.matGlass);
-      nose.position.set(0, -0.1, 2.6);
-      chassis.add(nose);
-
-      // Front & Rear Rotors
-      const rotorGeo = new THREE.BoxGeometry(5.2, 0.05, 0.35);
-      const frontRotor = new THREE.Mesh(rotorGeo, this.matDarkMetal);
-      frontRotor.position.set(0, 1.2, 1.5);
-      const rearRotor = new THREE.Mesh(rotorGeo, this.matDarkMetal);
-      rearRotor.position.set(0, 1.4, -1.5);
-      chassis.add(frontRotor);
-      chassis.add(rearRotor);
-      rotors.push(frontRotor, rearRotor);
-
-      // Dynamic Ground Shadow Disc
-      const shadowGeo = new THREE.CircleGeometry(2.4, 16);
-      shadowGeo.rotateX(-Math.PI / 2);
-      shadowDisc = new THREE.Mesh(shadowGeo, this.matShadow);
-      shadowDisc.position.y = 0.06;
-      root.add(shadowDisc);
-
     } else if (u.type === 'Humvee' || u.type === 'Technical' || u.type.includes('SupplyTruck') || u.type.includes('Worker')) {
-      // Wheeled Combat Vehicle / Truck
+      // Yengil G'ildirakli Mashina / Pikap / Ishchi mashinasi
       const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 2.6);
       const body = new THREE.Mesh(bodyGeo, unitMat);
       body.position.y = 0.7;
       body.castShadow = true;
       chassis.add(body);
 
-      // 4 Off-road wheels
-      const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.35, 10);
-      wheelGeo.rotateZ(Math.PI / 2);
+      // 4 Wheels
       const wPos = [[-0.95, 0.4, -0.8], [-0.95, 0.4, 0.8], [0.95, 0.4, -0.8], [0.95, 0.4, 0.8]];
       for (const [wx, wy, wz] of wPos) {
-        const wheel = new THREE.Mesh(wheelGeo, this.matTreads);
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.35, 10), this.matTreads);
+        wheel.rotateZ(Math.PI / 2);
         wheel.position.set(wx, wy, wz);
         chassis.add(wheel);
       }
 
-      // Roof Mounted Gun / Rack
+      // Roof Mounted Gun
       const gunGeo = new THREE.CylinderGeometry(0.08, 0.1, 1.4, 6);
       gunGeo.rotateX(Math.PI / 2);
       turret = new THREE.Mesh(gunGeo, this.matGunMetal);
@@ -225,9 +335,9 @@ export class Unit3DManager {
       barrels.push(turret);
 
     } else {
-      // Infantry Soldier (Low-Poly Soldier)
+      // Piyoda Askar (Ranger / Red Guard / Rebel)
       const soldier = new THREE.Group();
-      // Body
+      // Torso & legs
       const body = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 0.8, 6), unitMat);
       body.position.y = 0.6;
       soldier.add(body);
@@ -300,34 +410,32 @@ export class Unit3DManager {
         inst = this.createUnitMesh(u);
       }
 
-      // 1. Position & Flight Altitude
-      const targetY = u.isFlying ? 16.5 : 0;
+      // Position & Altitude
+      const targetY = u.isFlying ? 17.5 : 0;
       inst.group.position.set(u.x * 0.1, targetY, u.y * 0.1);
 
-      // Keep shadow on ground for flying units
+      // Keep shadow on ground for flying aircraft
       if (inst.shadowDisc) {
         inst.shadowDisc.position.set(0, -targetY + 0.08, 0);
       }
 
-      // 2. Chassis Rotation (facing movement direction)
-      // bodyAngle in radians (0 is right/east)
+      // Chassis Rotation
       inst.chassis.rotation.y = -u.bodyAngle + Math.PI / 2;
 
-      // 3. Turret Rotation (independent aiming)
+      // Turret Rotation (independent aiming)
       if (inst.turret && !u.isFlying) {
-        // Offset relative to chassis orientation
         const targetWorldAngle = -u.turretAngle + Math.PI / 2;
         inst.turret.rotation.y = targetWorldAngle - inst.chassis.rotation.y;
       }
 
-      // 4. Rotor Blade Animation (60 revs/sec)
+      // Rotor Blades Animation
       if (inst.rotors && inst.rotors.length > 0) {
         for (const rotor of inst.rotors) {
-          rotor.rotation.y += delta * 45;
+          rotor.rotation.y += delta * 50;
         }
       }
 
-      // 5. Cannon Recoil Animation
+      // Cannon Recoil Animation
       if (u.lastShot !== inst.lastShotTime) {
         inst.lastShotTime = u.lastShot;
         inst.recoilProgress = 1.0;
@@ -341,10 +449,10 @@ export class Unit3DManager {
         }
       }
 
-      // 6. Selection Ring State
+      // Selection Ring
       inst.selectionRing.visible = isSelected(u.id);
 
-      // 7. HP Bar update
+      // HP Bar
       const hpPercent = Math.max(0, u.hp / u.maxHp);
       inst.hpFillMesh.scale.x = hpPercent;
       inst.hpFillMesh.position.x = -(1 - hpPercent) * 0.875;
@@ -354,7 +462,6 @@ export class Unit3DManager {
       else if (hpPercent > 0.25) fillMat.color.setHex(0xf59e0b);
       else fillMat.color.setHex(0xef4444);
 
-      // Face camera
       inst.hpBarMesh.quaternion.copy(camera.quaternion);
     }
   }

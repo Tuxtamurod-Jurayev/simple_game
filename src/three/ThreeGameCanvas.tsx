@@ -336,7 +336,11 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             productionQueue: [],
             productionProgress: 0,
             cost: cfg.cost,
-            radarAngle: 0
+            radarAngle: 0,
+            isDefense: cfg.isDefense,
+            range: cfg.range,
+            damage: cfg.damage,
+            fireRate: cfg.fireRate
           };
           setBuildings(prev => [...prev, newBuilding]);
           audio3DRef.current.playBuildSound();
@@ -377,7 +381,29 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
         const simY = hit.z * 10;
         const canAfford = credits >= cfg.cost;
         const outOfBounds = simX < 80 || simX > WORLD_WIDTH - 80 || simY < 80 || simY > WORLD_HEIGHT - 80;
-        const isValid = canAfford && !outOfBounds;
+
+        // Collision against existing buildings (padding 14px)
+        const bW = cfg.width;
+        const bH = cfg.height;
+        const bLeft = simX - bW / 2;
+        const bRight = simX + bW / 2;
+        const bTop = simY - bH / 2;
+        const bBottom = simY + bH / 2;
+
+        const overlapsBuilding = buildings.some(b => {
+          const pad = 14;
+          return !(
+            bRight + pad < b.x ||
+            bLeft - pad > b.x + b.width ||
+            bBottom + pad < b.y ||
+            bTop - pad > b.y + b.height
+          );
+        });
+
+        // Water collision (cannot build inside river except bridge)
+        const inRiver = simX >= 1140 && simX <= 1260 && !(simY >= 710 && simY <= 890);
+
+        const isValid = canAfford && !outOfBounds && !overlapsBuilding && !inRiver;
         ghostValidRef.current = isValid;
 
         const gMat = ghostMeshRef.current.material as THREE.MeshBasicMaterial;
@@ -599,9 +625,9 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       )}
 
       {/* 3D Mode Active Status Badge */}
-      <div className="absolute top-3 left-4 pointer-events-none flex items-center gap-2 bg-zinc-900/80 border border-emerald-500/40 px-2.5 py-1 rounded text-xs font-mono text-emerald-400">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-        <span>THREE.JS 3D ENGINE • 60 FPS</span>
+      <div className="absolute top-14 left-4 pointer-events-none flex items-center gap-2 bg-zinc-900/90 border border-emerald-500/50 px-3 py-1.5 rounded text-xs font-mono text-emerald-400 shadow-xl backdrop-blur-sm">
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="font-bold tracking-wider">THREE.JS 3D DVIJOK • 60 FPS • 100VH TO'LIQ MAYDON</span>
       </div>
     </div>
   );

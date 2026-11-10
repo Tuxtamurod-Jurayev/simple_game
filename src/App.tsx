@@ -121,6 +121,54 @@ export default function App() {
       radarAngle: 0
     };
 
+    // Initial Player Reactor
+    const pReactorType: BuildingTypeId =
+      settings.playerFaction === 'USA' ? 'USA_Reactor' : settings.playerFaction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
+    const pRCfg = BUILDING_CONFIGS[pReactorType];
+    const initialPlayerReactor: Building = {
+      id: 3,
+      type: pReactorType,
+      team: 'player',
+      faction: settings.playerFaction,
+      x: 230,
+      y: 70,
+      width: pRCfg.width,
+      height: pRCfg.height,
+      hp: pRCfg.hp,
+      maxHp: pRCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: pRCfg.powerProduced,
+      powerConsumed: pRCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: pRCfg.cost
+    };
+
+    // Initial Player Supply Depot
+    const pDepotType: BuildingTypeId =
+      settings.playerFaction === 'USA' ? 'USA_SupplyDepot' : settings.playerFaction === 'China' ? 'China_SupplyCenter' : 'GLA_Barracks';
+    const pDCfg = BUILDING_CONFIGS[pDepotType];
+    const initialPlayerDepot: Building = {
+      id: 4,
+      type: pDepotType,
+      team: 'player',
+      faction: settings.playerFaction,
+      x: 90,
+      y: 230,
+      width: pDCfg.width,
+      height: pDCfg.height,
+      hp: pDCfg.hp,
+      maxHp: pDCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: pDCfg.powerProduced,
+      powerConsumed: pDCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: pDCfg.cost
+    };
+
     // 2. Initial Enemy Base (Bottom-Right 1900, 1150)
     const eBaseType: BuildingTypeId =
       settings.enemyFaction === 'USA' ? 'USA_HQ' : settings.enemyFaction === 'China' ? 'China_HQ' : 'GLA_HQ';
@@ -147,7 +195,30 @@ export default function App() {
       radarAngle: 0
     };
 
-    setBuildings([initialPlayerHQ, initialEnemyHQ]);
+    const eReactorType: BuildingTypeId =
+      settings.enemyFaction === 'USA' ? 'USA_Reactor' : settings.enemyFaction === 'China' ? 'China_Reactor' : 'GLA_SupplyStash';
+    const eRCfg = BUILDING_CONFIGS[eReactorType];
+    const initialEnemyReactor: Building = {
+      id: 5,
+      type: eReactorType,
+      team: 'enemy',
+      faction: settings.enemyFaction,
+      x: 2120,
+      y: 1200,
+      width: eRCfg.width,
+      height: eRCfg.height,
+      hp: eRCfg.hp,
+      maxHp: eRCfg.hp,
+      buildProgress: 100,
+      isCompleted: true,
+      powerProduced: eRCfg.powerProduced,
+      powerConsumed: eRCfg.powerConsumed,
+      productionQueue: [],
+      productionProgress: 0,
+      cost: eRCfg.cost
+    };
+
+    setBuildings([initialPlayerHQ, initialPlayerReactor, initialPlayerDepot, initialEnemyHQ, initialEnemyReactor]);
 
     // Initial Units
     const pHarvesterType: UnitTypeId =
@@ -337,14 +408,31 @@ export default function App() {
     const cfg = UNIT_CONFIGS[type];
     if (credits < cfg.cost) return;
 
-    // Find factory or barracks
-    const factory = buildings.find(
-      b => b.team === 'player' && b.isCompleted && (b.type.includes('WarFactory') || b.type.includes('Barracks'))
-    );
-    if (!factory) return;
+    // Find factory, barracks, airfield or HQ
+    let target = buildings.find(b => {
+      if (!b.isCompleted || b.team !== 'player') return false;
+      if (cfg.category === 'air' && b.type.includes('Airfield')) return true;
+      if (cfg.category === 'vehicle' && b.type.includes('WarFactory')) return true;
+      if (cfg.category === 'infantry' && b.type.includes('Barracks')) return true;
+      return false;
+    });
+
+    if (!target) {
+      target = buildings.find(
+        b =>
+          b.team === 'player' &&
+          b.isCompleted &&
+          (b.type.includes('HQ') ||
+            b.type.includes('WarFactory') ||
+            b.type.includes('Barracks') ||
+            b.type.includes('Airfield'))
+      );
+    }
+
+    if (!target) return;
 
     setCredits(prev => prev - cfg.cost);
-    factory.productionQueue.push(type);
+    target.productionQueue.push(type);
   };
 
   // Game Logic / Physics / AI Loop (60 FPS tick)
@@ -514,59 +602,38 @@ export default function App() {
 
   // SCREEN 2: 3D THREE.JS BATTLEFIELD & C&C GENERALS COMMAND HUD
   return (
-    <div className="min-h-screen bg-[#070b08] text-white flex flex-col items-center justify-between select-none font-mono overflow-hidden">
-      {/* MAIN 3D BATTLEFIELD CANVAS (1100 x 560 px Viewport into 240 x 160 3D World) */}
-      <div className="relative w-[1100px] h-[560px] my-1 border-2 border-slate-700 rounded shadow-2xl overflow-hidden">
-        <ThreeGameCanvas
-          faction={playerFaction}
-          units={units}
-          setUnits={setUnits}
-          buildings={buildings}
-          setBuildings={setBuildings}
-          supplyDocks={supplyDocksRef.current}
-          salvageCrates={salvageCratesRef.current}
-          projectiles={projectilesRef.current}
-          particles={particlesRef.current}
-          superweaponStrikes={superweaponStrikesRef.current}
-          fogSystem={fogSystemRef.current}
-          camera={camera}
-          setCamera={setCamera}
-          selectedUnits={selectedUnits}
-          setSelectedUnits={setSelectedUnits}
-          selectedBuilding={selectedBuilding}
-          setSelectedBuilding={setSelectedBuilding}
-          placingBuildingType={placingBuildingType}
-          setPlacingBuildingType={setPlacingBuildingType}
-          targetingSuperweapon={targetingSuperweapon}
-          setTargetingSuperweapon={setTargetingSuperweapon}
-          onLaunchSuperweaponAt={handleLaunchSuperweaponAt}
-          credits={credits}
-          onDeductCredits={amt => setCredits(prev => Math.max(0, prev - amt))}
-          audioEnabled={audioEnabled}
-          screenShake={screenShake}
-        />
+    <div className="w-screen h-screen fixed inset-0 overflow-hidden bg-black select-none font-mono">
+      {/* 100VH TO'LIQ 3D THREE.JS MAYDONI */}
+      <ThreeGameCanvas
+        faction={playerFaction}
+        units={units}
+        setUnits={setUnits}
+        buildings={buildings}
+        setBuildings={setBuildings}
+        supplyDocks={supplyDocksRef.current}
+        salvageCrates={salvageCratesRef.current}
+        projectiles={projectilesRef.current}
+        particles={particlesRef.current}
+        superweaponStrikes={superweaponStrikesRef.current}
+        fogSystem={fogSystemRef.current}
+        camera={camera}
+        setCamera={setCamera}
+        selectedUnits={selectedUnits}
+        setSelectedUnits={setSelectedUnits}
+        selectedBuilding={selectedBuilding}
+        setSelectedBuilding={setSelectedBuilding}
+        placingBuildingType={placingBuildingType}
+        setPlacingBuildingType={setPlacingBuildingType}
+        targetingSuperweapon={targetingSuperweapon}
+        setTargetingSuperweapon={setTargetingSuperweapon}
+        onLaunchSuperweaponAt={handleLaunchSuperweaponAt}
+        credits={credits}
+        onDeductCredits={amt => setCredits(prev => Math.max(0, prev - amt))}
+        audioEnabled={audioEnabled}
+        screenShake={screenShake}
+      />
 
-        {/* Victory / Defeat Modal */}
-        {winner && (
-          <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center z-50">
-            <h2
-              className={`text-5xl font-black tracking-widest mb-4 ${
-                winner === 'player' ? 'text-emerald-400' : 'text-red-500'
-              }`}
-            >
-              {winner === 'player' ? 'VICTORY! GENERAL OVERLORD DEFEATED!' : 'DEFEAT! BASE HAS FALLEN'}
-            </h2>
-            <button
-              onClick={() => setInSkirmish(true)}
-              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm tracking-wider uppercase rounded cursor-pointer shadow-2xl transition"
-            >
-              SKIRMISH MENYUGA QAYTISH
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* FULL C&C GENERALS COMMAND BAR & TACTICAL OVERLAY */}
+      {/* C&C GENERALS TAKTIK HUD VA BOSHQARUV PULTI (100% O'ZBEKCHA) */}
       <UIOverlay
         faction={playerFaction}
         credits={credits}
@@ -602,6 +669,32 @@ export default function App() {
         placingBuildingType={placingBuildingType}
         targetingSuperweapon={targetingSuperweapon}
       />
+
+      {/* G'alaba / Mag'lubiyat oynasi */}
+      {winner && (
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50">
+          <div className="bg-[#101812] border-4 border-amber-500 p-8 rounded-lg text-center shadow-2xl max-w-lg">
+            <h2
+              className={`text-4xl font-black tracking-widest mb-3 ${
+                winner === 'player' ? 'text-emerald-400' : 'text-red-500'
+              }`}
+            >
+              {winner === 'player' ? "G'ALABA! DUSHMAN BAZASI YAKSON ETILDI!" : "MAG'LUBIYAT! BAZANGIZ VAYRON BO'LDI"}
+            </h2>
+            <p className="text-sm text-slate-300 mb-6 font-mono leading-relaxed">
+              {winner === 'player'
+                ? "General, barcha dushman kuchlari yo'q qilindi. Maydon to'liq sizning nazoratingizda!"
+                : "Afsus, bazangiz dushman hujumiga bardosh bera olmadi. Qayta jang qilishga tayyormisiz?"}
+            </p>
+            <button
+              onClick={() => setInSkirmish(true)}
+              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm tracking-wider uppercase rounded cursor-pointer shadow-2xl transition"
+            >
+              SKIRMISH MENYUGA QAYTISH
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

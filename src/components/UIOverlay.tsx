@@ -92,15 +92,15 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
       </div>
 
       {/* 2. CENTER TACTICAL NOTIFICATIONS / HINTS */}
-      <div className="flex flex-col items-center gap-2 pointer-events-none">
+      <div className="flex flex-col items-center gap-2 pointer-events-none mb-2">
         {targetingSuperweapon && (
-          <div className="bg-red-950/90 border-2 border-red-500 text-red-300 font-mono text-sm px-6 py-2 rounded-md shadow-2xl animate-pulse">
-            ⚠️ TARGETING SUPERWEAPON — CLICK ON 3D MAP TO STRIKE (OR RIGHT-CLICK TO CANCEL)
+          <div className="bg-red-950/95 border-2 border-red-500 text-red-200 font-mono text-sm px-6 py-2 rounded-md shadow-2xl animate-pulse">
+            ⚠️ STRATEGIK QUROL NISHONGA OLINMOQDA — ZARBA BERISH UCHUN XARITAGA BOSING (BEKOR QILISH UCHUN O'NG TUGMA)
           </div>
         )}
         {placingBuildingType && (
-          <div className="bg-emerald-950/90 border border-emerald-500 text-emerald-300 font-mono text-xs px-5 py-1.5 rounded-md shadow-lg">
-            🏗️ PLACING {placingBuildingType} — CLICK ON GROUND TO CONSTRUCT (OR RIGHT-CLICK TO CANCEL)
+          <div className="bg-emerald-950/95 border border-emerald-500 text-emerald-200 font-mono text-xs px-5 py-1.5 rounded-md shadow-xl">
+            🏗️ QURILISH MAYDONINI TANLANG: YASHIL — RUXSAT ETILGAN, QIZIL — BAND (BEKOR QILISH: O'NG TUGMA)
           </div>
         )}
       </div>

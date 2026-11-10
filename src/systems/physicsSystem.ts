@@ -276,6 +276,65 @@ export class PhysicsSystem {
         }
       }
     });
+
+    // Automated Defense Towers (Patriot, Gatling Cannon, Stinger Site)
+    this.updateDefenseBuildings(buildings, units, projectiles, audioEnabled);
+  }
+
+  // Update Automated Defense Towers
+  static updateDefenseBuildings(
+    buildings: Building[],
+    units: Unit[],
+    projectiles: Projectile[],
+    audioEnabled = true
+  ): void {
+    const now = Date.now();
+    buildings.forEach(b => {
+      if (!b.isCompleted || b.hp <= 0 || !b.isDefense || !b.range || !b.damage) return;
+      const enemyTeam = b.team === 'player' ? 'enemy' : 'player';
+      const bCenterX = b.x + b.width / 2;
+      const bCenterY = b.y + b.height / 2;
+
+      let targetUnit: Unit | null = null;
+      let minDist = b.range;
+      for (const u of units) {
+        if (u.team === enemyTeam && u.hp > 0) {
+          const d = Math.hypot(u.x - bCenterX, u.y - bCenterY);
+          if (d <= minDist) {
+            minDist = d;
+            targetUnit = u;
+          }
+        }
+      }
+
+      if (targetUnit) {
+        const rate = b.fireRate || 1000;
+        if (now - (b.lastShot || 0) >= rate) {
+          b.lastShot = now;
+          const isRocket = b.type.includes('Patriot') || b.type.includes('Stinger');
+          projectiles.push({
+            id: Date.now() + Math.random(),
+            x: bCenterX,
+            y: bCenterY,
+            tx: targetUnit.x,
+            ty: targetUnit.y,
+            speed: isRocket ? 8.5 : 9.5,
+            damage: b.damage,
+            team: b.team,
+            faction: b.faction,
+            isRocket,
+            isHeavy: isRocket,
+            isTracer: !isRocket
+          });
+
+          if (isRocket) {
+            playCannonShot(false, audioEnabled);
+          } else {
+            playGatlingFire(audioEnabled);
+          }
+        }
+      }
+    });
   }
 
   // Projectiles update & damage application
