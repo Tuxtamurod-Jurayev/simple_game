@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 export class Terrain3D {
   public group: THREE.Group = new THREE.Group();
+  public groundMesh: THREE.Mesh;
 
   constructor(worldWidth: number, worldDepth: number) {
     // 1. Desert Terrain Base Ground
@@ -23,11 +24,11 @@ export class Terrain3D {
       metalness: 0.1
     });
 
-    const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-    groundMesh.rotation.x = -Math.PI / 2;
-    groundMesh.position.set(worldWidth / 2, 0, worldDepth / 2);
-    groundMesh.receiveShadow = true;
-    this.group.add(groundMesh);
+    this.groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    this.groundMesh.rotation.x = -Math.PI / 2;
+    this.groundMesh.position.set(worldWidth / 2, 0, worldDepth / 2);
+    this.groundMesh.receiveShadow = true;
+    this.group.add(this.groundMesh);
 
     // 2. Winding River Channel
     // River crosses roughly around x = 110 to 130

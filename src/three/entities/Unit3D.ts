@@ -27,7 +27,7 @@ export interface Unit3DInstance {
 
 export class Unit3DManager {
   public scene: THREE.Scene;
-  private unitInstances: Map<number, Unit3DInstance> = new Map();
+  public unitInstances: Map<number, Unit3DInstance> = new Map();
 
   // Camouflage & Military PBR Materials (Optimized Metallic Armor & Glow)
   private matUSAArmor: THREE.MeshStandardMaterial;
@@ -420,9 +420,11 @@ export class Unit3DManager {
     root.add(hpBarMesh);
 
     root.position.set(u.x * 0.1, u.isFlying ? 18 : 0, u.y * 0.1);
+    root.userData = { unitId: u.id, team: u.team };
 
-    // Frustum Culling optimization for stable 60 FPS
+    // Frustum Culling optimization for stable 60 FPS & Raycasting data
     root.traverse(child => {
+      child.userData = { unitId: u.id, team: u.team };
       if ((child as THREE.Mesh).isMesh) {
         child.frustumCulled = true;
       }

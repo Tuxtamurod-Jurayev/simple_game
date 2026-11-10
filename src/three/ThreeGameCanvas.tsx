@@ -23,6 +23,7 @@ import { Terrain3D } from './entities/Terrain3D';
 import { Building3DManager } from './entities/Building3D';
 import { Unit3DManager } from './entities/Unit3D';
 import { Projectile3DManager } from './entities/Projectile3D';
+import { UnitController, ControllableUnit } from './systems/unitController';
 
 interface ThreeGameCanvasProps {
   faction: Faction;
@@ -98,6 +99,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   const buildingMgrRef = useRef<Building3DManager | null>(null);
   const unitMgrRef = useRef<Unit3DManager | null>(null);
   const projMgrRef = useRef<Projectile3DManager | null>(null);
+  const unitControllerRef = useRef<UnitController | null>(null);
 
   // Ghost building placement mesh
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
@@ -158,6 +160,11 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     buildingMgrRef.current = new Building3DManager(scene);
     unitMgrRef.current = new Unit3DManager(scene);
     projMgrRef.current = new Projectile3DManager(scene);
+    unitControllerRef.current = new UnitController(
+      rtsCamera.camera,
+      scene,
+      terrainRef.current.groundMesh
+    );
 
     // 5. Ghost Placement Group (Wireframe Box + Ground Grid Footprint)
     const ghostGroup = new THREE.Group();
@@ -275,6 +282,24 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       // Update 3D Entities
       const selIds = new Set(selectedUnits.map(u => u.id));
       unitMgrRef.current?.update(units, rtsCam.camera, id => selIds.has(id), delta);
+
+      // Sync 3D UnitController with live entities
+      if (unitControllerRef.current && unitMgrRef.current) {
+        const instances = unitMgrRef.current.unitInstances;
+        const controllableList: ControllableUnit[] = units.map(u => {
+          const inst = instances.get(u.id);
+          return {
+            id: u.id,
+            mesh: inst ? inst.group : new THREE.Object3D(),
+            target: u.targetX !== null && u.targetY !== null ? new THREE.Vector3(u.targetX * 0.1, 0, u.targetY * 0.1) : null,
+            speed: u.speed * 0.1,
+            team: u.team,
+            bodyAngle: u.bodyAngle
+          };
+        });
+        unitControllerRef.current.syncUnits(controllableList);
+      }
+
       buildingMgrRef.current?.update(buildings, rtsCam.camera, delta);
       projMgrRef.current?.updateProjectiles(projectiles);
       projMgrRef.current?.updateDocksAndCrates(supplyDocks, salvageCrates, delta);
@@ -479,13 +504,29 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const dist = Math.hypot(currentX - startX, currentY - startY);
 
     if (dist < 6) {
-      // Single Click Selection
+      // 1. Raycast direct 3D Unit Mesh with UnitController
+      const raycastUnit = unitControllerRef.current?.getRaycastUnit(e.clientX, e.clientY, rect);
+      if (raycastUnit) {
+        const clickedUnit = units.find(u => u.id === raycastUnit.id);
+        if (clickedUnit) {
+          setSelectedUnits([clickedUnit]);
+          setSelectedBuilding(null);
+          unitControllerRef.current?.highlightUnit(raycastUnit.mesh);
+          if (clickedUnit.team === 'player') {
+            audio3DRef.current.speak('select', clickedUnit.faction);
+          }
+          setDragBox(null);
+          return;
+        }
+      }
+
+      // 2. Fallback to Ground Intersection (Units proximity & Buildings)
       const hit = rtsCam.getGroundIntersection(e.clientX, e.clientY, rect);
       if (hit) {
         const wx = hit.x * 10;
         const wy = hit.z * 10;
 
-        // 1. Check unit under cursor
+        // Check unit under cursor
         const clickedUnit = units.find(u => {
           const d = Math.hypot(u.x - wx, u.y - wy);
           return d <= (u.radius + 18);
@@ -498,7 +539,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             audio3DRef.current.speak('select', clickedUnit.faction);
           }
         } else {
-          // 2. Check building under cursor
+          // Check building under cursor
           const clickedBuilding = buildings.find(b => {
             return wx >= b.x && wx <= b.x + b.width && wy >= b.y && wy <= b.y + b.height;
           });
@@ -510,6 +551,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
             // Deselect all
             setSelectedUnits([]);
             setSelectedBuilding(null);
+            unitControllerRef.current?.clearSelection();
           }
         }
       }
@@ -572,8 +614,12 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const worldX = hit.x * 10;
     const worldY = hit.z * 10;
 
-    // A. Check if right-clicked on an enemy unit
-    const enemyUnit = units.find(u => u.team === 'enemy' && u.hp > 0 && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
+    // A. Check if right-clicked on an enemy unit (via 3D Raycast or Proximity)
+    const raycastEnemy = unitControllerRef.current?.getRaycastUnit(e.clientX, e.clientY, rect);
+    const enemyUnit =
+      raycastEnemy && raycastEnemy.team === 'enemy'
+        ? units.find(u => u.id === raycastEnemy.id)
+        : units.find(u => u.team === 'enemy' && u.hp > 0 && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
     if (enemyUnit) {
       if (moveMarkerRef.current) {
         moveMarkerRef.current.position.set(enemyUnit.x * 0.1, 0.12, enemyUnit.y * 0.1);
@@ -644,9 +690,13 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       return;
     }
 
-    // D. Right-click on Ground: Tactical Formation Movement
+    // D. Right-click on Ground: 3D Raycaster Formation Movement
+    const terrainHit = unitControllerRef.current?.getTerrainIntersection(e.clientX, e.clientY, rect) || hit;
+    const destWorldX = terrainHit.x * 10;
+    const destWorldY = terrainHit.z * 10;
+
     if (moveMarkerRef.current) {
-      moveMarkerRef.current.position.set(hit.x, 0.12, hit.z);
+      moveMarkerRef.current.position.set(terrainHit.x, 0.12, terrainHit.z);
       const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
       mat.color.setHex(0x10b981);
       mat.opacity = 0.9;
@@ -656,18 +706,18 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     }
 
     const count = playerUnits.length;
-    const spacing = 40;
-    const cols = Math.ceil(Math.sqrt(count));
-
     setUnits(prev =>
       prev.map(u => {
         const idx = playerUnits.findIndex(pu => pu.id === u.id);
         if (idx !== -1) {
-          const row = Math.floor(idx / cols);
-          const col = idx % cols;
-          const targetX = worldX + (col - (cols - 1) / 2) * spacing;
-          const targetY = worldY + (row - (cols - 1) / 2) * spacing;
-          return { ...u, targetX, targetY };
+          // Formation offset: (idx % 3) * 3 - 3 and Math.floor(idx / 3) * 3 - 3
+          const offsetX = count === 1 ? 0 : ((idx % 3) * 3 - 3) * 10;
+          const offsetY = count === 1 ? 0 : (Math.floor(idx / 3) * 3 - 3) * 10;
+          return {
+            ...u,
+            targetX: destWorldX + offsetX,
+            targetY: destWorldY + offsetY
+          };
         }
         return u;
       })
