@@ -38,7 +38,7 @@ interface UIOverlayProps {
   onTrainUnit: (type: UnitTypeId) => void;
   onTriggerSuperweaponTargetMode: () => void;
   isSuperweaponReady: boolean;
-  onTacticalCommand: (command: 'stop' | 'scatter' | 'guard') => void;
+  onTacticalCommand: (command: 'stop' | 'scatter' | 'guard' | 'attackMove') => void;
 
   placingBuildingType: BuildingTypeId | null;
   targetingSuperweapon: boolean;

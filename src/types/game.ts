@@ -93,6 +93,9 @@ export interface Unit extends Entity {
   pdlCooldown?: number; // For Paladin laser intercept
   isHordeBoosted?: boolean; // China Horde bonus
   cost: number;
+  attackTargetId?: number | null;
+  attackTargetType?: 'unit' | 'building' | null;
+  isAttackMoving?: boolean;
 }
 
 export interface Building extends Entity {

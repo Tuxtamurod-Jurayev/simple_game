@@ -22,7 +22,7 @@ export interface Building3DInstance {
 
 export class Building3DManager {
   public scene: THREE.Scene;
-  private buildingInstances: Map<number, Building3DInstance> = new Map();
+  public buildingInstances: Map<number, Building3DInstance> = new Map();
 
   // Procedural Camo & PBR Materials (Metallic Armor, Metal Parts & Glow)
   private matUSAArmor: THREE.MeshStandardMaterial;
@@ -387,8 +387,11 @@ export class Building3DManager {
 
     root.position.set(b.x * 0.1, 0, b.y * 0.1);
 
-    // Frustum Culling optimization for stable 60 FPS
+    root.userData = { buildingId: b.id, team: b.team };
+
+    // Frustum Culling optimization for stable 60 FPS & Raycaster tag
     root.traverse(child => {
+      child.userData = { buildingId: b.id, team: b.team };
       if ((child as THREE.Mesh).isMesh) {
         child.frustumCulled = true;
       }

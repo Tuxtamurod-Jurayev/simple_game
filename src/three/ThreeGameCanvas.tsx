@@ -24,6 +24,7 @@ import { Building3DManager } from './entities/Building3D';
 import { Unit3DManager } from './entities/Unit3D';
 import { Projectile3DManager } from './entities/Projectile3D';
 import { UnitController, ControllableUnit } from './systems/unitController';
+import { MouseControlSystem } from './systems/mouseControlSystem';
 
 interface ThreeGameCanvasProps {
   faction: Faction;
@@ -100,6 +101,8 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
   const unitMgrRef = useRef<Unit3DManager | null>(null);
   const projMgrRef = useRef<Projectile3DManager | null>(null);
   const unitControllerRef = useRef<UnitController | null>(null);
+  const mouseControlRef = useRef<MouseControlSystem | null>(null);
+  const [attackMoveStatus, setAttackMoveStatus] = useState<boolean>(false);
 
   // Ghost building placement mesh
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
@@ -166,6 +169,101 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       terrainRef.current.groundMesh
     );
 
+    // 7-BO'LIM: MouseControlSystem (3D Raycaster, Select, Move & Attack-Move)
+    const mouseControl = new MouseControlSystem(
+      rtsCamera.camera,
+      scene,
+      terrainRef.current.groundMesh
+    );
+    mouseControl.initListeners(canvasRef.current);
+    mouseControlRef.current = mouseControl;
+
+    mouseControl.onSelectUnits = selUnits => {
+      setSelectedUnits(selUnits);
+      setSelectedBuilding(null);
+    };
+
+    mouseControl.onSelectBuilding = selBuilding => {
+      setSelectedBuilding(selBuilding);
+      setSelectedUnits([]);
+    };
+
+    mouseControl.onMoveOrder = commands => {
+      const cmdMap = new Map(commands.map(c => [c.unitId, c]));
+      setUnits(prev =>
+        prev.map(u => {
+          const cmd = cmdMap.get(u.id);
+          if (cmd) {
+            return {
+              ...u,
+              targetX: cmd.targetX,
+              targetY: cmd.targetY,
+              attackTargetId: null,
+              attackTargetType: null,
+              isAttackMoving: false
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    mouseControl.onAttackOrder = (unitIds, targetId, targetType) => {
+      const idSet = new Set(unitIds);
+      setUnits(prev =>
+        prev.map(u => {
+          if (idSet.has(u.id)) {
+            return {
+              ...u,
+              attackTargetId: targetId,
+              attackTargetType: targetType,
+              isAttackMoving: false
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    mouseControl.onAttackMoveOrder = (unitIds, targetX, targetY) => {
+      const idSet = new Set(unitIds);
+      const count = unitIds.length;
+      setUnits(prev =>
+        prev.map(u => {
+          const idx = unitIds.indexOf(u.id);
+          if (idx !== -1) {
+            const offsetX = count === 1 ? 0 : ((idx % 3) * 3 - 3) * 10;
+            const offsetY = count === 1 ? 0 : (Math.floor(idx / 3) * 3 - 3) * 10;
+            return {
+              ...u,
+              targetX: targetX + offsetX,
+              targetY: targetY + offsetY,
+              attackTargetId: null,
+              attackTargetType: null,
+              isAttackMoving: true
+            };
+          }
+          return u;
+        })
+      );
+    };
+
+    mouseControl.onShowMarker = (x, y, z, colorHex) => {
+      if (moveMarkerRef.current) {
+        moveMarkerRef.current.position.set(x, y, z);
+        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
+        mat.color.setHex(colorHex);
+        mat.opacity = 0.95;
+        moveMarkerRef.current.scale.set(1, 1, 1);
+        moveMarkerRef.current.visible = true;
+        moveMarkerTimer.current = 0.65;
+      }
+    };
+
+    mouseControl.onPlayAudio = (action, fac) => {
+      audio3DRef.current.speak(action, fac);
+    };
+
     // 5. Ghost Placement Group (Wireframe Box + Ground Grid Footprint)
     const ghostGroup = new THREE.Group();
     const gGeo = new THREE.BoxGeometry(6, 4, 6);
@@ -211,6 +309,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       renderer.dispose();
       buildingMgrRef.current?.dispose();
       unitMgrRef.current?.dispose();
+      mouseControlRef.current?.dispose();
     };
   }, []);
 
@@ -298,6 +397,21 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
           };
         });
         unitControllerRef.current.syncUnits(controllableList);
+      }
+
+      // Sync 7-BO'LIM MouseControlSystem state
+      if (mouseControlRef.current && unitMgrRef.current && buildingMgrRef.current) {
+        mouseControlRef.current.syncState(
+          units,
+          unitMgrRef.current.unitInstances,
+          buildings,
+          buildingMgrRef.current.buildingInstances,
+          selectedUnits,
+          selectedBuilding,
+          faction
+        );
+        const amActive = mouseControlRef.current.isAttackMoveKeyDown || mouseControlRef.current.isAttackMoveActive;
+        setAttackMoveStatus(amActive);
       }
 
       buildingMgrRef.current?.update(buildings, rtsCam.camera, delta);
@@ -399,7 +513,14 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       return;
     }
 
-    // 3. Start Drag Selection Box
+    // 3. Attack-Move Mode Active ('A' key pressed or toggled)
+    if (mouseControlRef.current?.isAttackMoveKeyDown || mouseControlRef.current?.isAttackMoveActive) {
+      mouseControlRef.current.processAttackMove();
+      mouseControlRef.current.isAttackMoveActive = false;
+      return;
+    }
+
+    // 4. Start Drag Selection Box
     isDraggingRef.current = true;
     dragStartRef.current = { screenX: e.clientX - rect.left, screenY: e.clientY - rect.top };
     setDragBox(null);
@@ -504,56 +625,9 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const dist = Math.hypot(currentX - startX, currentY - startY);
 
     if (dist < 6) {
-      // 1. Raycast direct 3D Unit Mesh with UnitController
-      const raycastUnit = unitControllerRef.current?.getRaycastUnit(e.clientX, e.clientY, rect);
-      if (raycastUnit) {
-        const clickedUnit = units.find(u => u.id === raycastUnit.id);
-        if (clickedUnit) {
-          setSelectedUnits([clickedUnit]);
-          setSelectedBuilding(null);
-          unitControllerRef.current?.highlightUnit(raycastUnit.mesh);
-          if (clickedUnit.team === 'player') {
-            audio3DRef.current.speak('select', clickedUnit.faction);
-          }
-          setDragBox(null);
-          return;
-        }
-      }
-
-      // 2. Fallback to Ground Intersection (Units proximity & Buildings)
-      const hit = rtsCam.getGroundIntersection(e.clientX, e.clientY, rect);
-      if (hit) {
-        const wx = hit.x * 10;
-        const wy = hit.z * 10;
-
-        // Check unit under cursor
-        const clickedUnit = units.find(u => {
-          const d = Math.hypot(u.x - wx, u.y - wy);
-          return d <= (u.radius + 18);
-        });
-
-        if (clickedUnit) {
-          setSelectedUnits([clickedUnit]);
-          setSelectedBuilding(null);
-          if (clickedUnit.team === 'player') {
-            audio3DRef.current.speak('select', clickedUnit.faction);
-          }
-        } else {
-          // Check building under cursor
-          const clickedBuilding = buildings.find(b => {
-            return wx >= b.x && wx <= b.x + b.width && wy >= b.y && wy <= b.y + b.height;
-          });
-
-          if (clickedBuilding) {
-            setSelectedBuilding(clickedBuilding);
-            setSelectedUnits([]);
-          } else {
-            // Deselect all
-            setSelectedUnits([]);
-            setSelectedBuilding(null);
-            unitControllerRef.current?.clearSelection();
-          }
-        }
+      // 7-BO'LIM: 3D Raycaster Chap Tugma Bilan Tanlash Mantiqi (Select)
+      if (mouseControlRef.current) {
+        mouseControlRef.current.processSelection();
       }
     } else if (dragBox) {
       // Box Drag Selection: Select all player units inside box
@@ -614,56 +688,7 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
     const worldX = hit.x * 10;
     const worldY = hit.z * 10;
 
-    // A. Check if right-clicked on an enemy unit (via 3D Raycast or Proximity)
-    const raycastEnemy = unitControllerRef.current?.getRaycastUnit(e.clientX, e.clientY, rect);
-    const enemyUnit =
-      raycastEnemy && raycastEnemy.team === 'enemy'
-        ? units.find(u => u.id === raycastEnemy.id)
-        : units.find(u => u.team === 'enemy' && u.hp > 0 && Math.hypot(u.x - worldX, u.y - worldY) <= u.radius + 24);
-    if (enemyUnit) {
-      if (moveMarkerRef.current) {
-        moveMarkerRef.current.position.set(enemyUnit.x * 0.1, 0.12, enemyUnit.y * 0.1);
-        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
-        mat.color.setHex(0xef4444);
-        mat.opacity = 0.9;
-        moveMarkerRef.current.scale.set(1, 1, 1);
-        moveMarkerRef.current.visible = true;
-        moveMarkerTimer.current = 0.65;
-      }
-
-      setUnits(prev =>
-        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: enemyUnit.x, targetY: enemyUnit.y } : u))
-      );
-      audio3DRef.current.speak('attack', faction);
-      return;
-    }
-
-    // B. Check if right-clicked on an enemy building
-    const enemyBuilding = buildings.find(
-      b => b.team === 'enemy' && b.hp > 0 && worldX >= b.x && worldX <= b.x + b.width && worldY >= b.y && worldY <= b.y + b.height
-    );
-    if (enemyBuilding) {
-      const bCenterX = enemyBuilding.x + enemyBuilding.width / 2;
-      const bCenterY = enemyBuilding.y + enemyBuilding.height / 2;
-
-      if (moveMarkerRef.current) {
-        moveMarkerRef.current.position.set(bCenterX * 0.1, 0.12, bCenterY * 0.1);
-        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
-        mat.color.setHex(0xef4444);
-        mat.opacity = 0.9;
-        moveMarkerRef.current.scale.set(1, 1, 1);
-        moveMarkerRef.current.visible = true;
-        moveMarkerTimer.current = 0.65;
-      }
-
-      setUnits(prev =>
-        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: bCenterX, targetY: bCenterY } : u))
-      );
-      audio3DRef.current.speak('attack', faction);
-      return;
-    }
-
-    // C. Check if right-clicked on a Supply Dock (for Harvesters)
+    // Special: Right-click on Supply Dock (for Harvesters)
     const clickedDock = supplyDocks.find(
       sd => worldX >= sd.x - 20 && worldX <= sd.x + sd.width + 20 && worldY >= sd.y - 20 && worldY <= sd.y + sd.height + 20
     );
@@ -673,57 +698,18 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
       const dockCX = clickedDock.x + clickedDock.width / 2;
       const dockCY = clickedDock.y + clickedDock.height / 2;
 
-      if (moveMarkerRef.current) {
-        moveMarkerRef.current.position.set(dockCX * 0.1, 0.12, dockCY * 0.1);
-        const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
-        mat.color.setHex(0xf59e0b);
-        mat.opacity = 0.9;
-        moveMarkerRef.current.scale.set(1, 1, 1);
-        moveMarkerRef.current.visible = true;
-        moveMarkerTimer.current = 0.65;
-      }
-
+      mouseControlRef.current?.onShowMarker?.(dockCX * 0.1, 0.12, dockCY * 0.1, 0xf59e0b);
       setUnits(prev =>
-        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: dockCX, targetY: dockCY } : u))
+        prev.map(u => (playerUnits.some(pu => pu.id === u.id) ? { ...u, targetX: dockCX, targetY: dockCY, attackTargetId: null, isAttackMoving: false } : u))
       );
       audio3DRef.current.speak('move', faction);
       return;
     }
 
-    // D. Right-click on Ground: 3D Raycaster Formation Movement
-    const terrainHit = unitControllerRef.current?.getTerrainIntersection(e.clientX, e.clientY, rect) || hit;
-    const destWorldX = terrainHit.x * 10;
-    const destWorldY = terrainHit.z * 10;
-
-    if (moveMarkerRef.current) {
-      moveMarkerRef.current.position.set(terrainHit.x, 0.12, terrainHit.z);
-      const mat = moveMarkerRef.current.material as THREE.MeshBasicMaterial;
-      mat.color.setHex(0x10b981);
-      mat.opacity = 0.9;
-      moveMarkerRef.current.scale.set(1, 1, 1);
-      moveMarkerRef.current.visible = true;
-      moveMarkerTimer.current = 0.55;
+    // 7-BO'LIM: 3D Raycaster O'ng Tugma Bilan Harakatlanish va Hujum Mantiqi (Move / Attack / Attack-Move)
+    if (mouseControlRef.current) {
+      mouseControlRef.current.processContextOrder();
     }
-
-    const count = playerUnits.length;
-    setUnits(prev =>
-      prev.map(u => {
-        const idx = playerUnits.findIndex(pu => pu.id === u.id);
-        if (idx !== -1) {
-          // Formation offset: (idx % 3) * 3 - 3 and Math.floor(idx / 3) * 3 - 3
-          const offsetX = count === 1 ? 0 : ((idx % 3) * 3 - 3) * 10;
-          const offsetY = count === 1 ? 0 : (Math.floor(idx / 3) * 3 - 3) * 10;
-          return {
-            ...u,
-            targetX: destWorldX + offsetX,
-            targetY: destWorldY + offsetY
-          };
-        }
-        return u;
-      })
-    );
-
-    audio3DRef.current.speak('move', faction);
   };
 
   // Mouse Wheel Zoom
@@ -778,6 +764,14 @@ export const ThreeGameCanvas: React.FC<ThreeGameCanvasProps> = ({
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
         <span className="font-bold tracking-wider">THREE.JS 3D DVIJOK • 60 FPS • 100VH TO'LIQ MAYDON</span>
       </div>
+
+      {/* Attack-Move Mode Active Indicator */}
+      {attackMoveStatus && (
+        <div className="absolute top-14 right-4 pointer-events-none flex items-center gap-2 bg-amber-950/90 border border-amber-500 px-3 py-1.5 rounded text-xs font-mono text-amber-300 shadow-xl backdrop-blur-sm animate-pulse">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+          <span className="font-bold tracking-wider">[A] HUJUMGA O'TISH (ATTACK-MOVE) • YERNI YOKI DUSHMANNI TANLANG</span>
+        </div>
+      )}
     </div>
   );
 };

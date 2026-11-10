@@ -388,18 +388,34 @@ export default function App() {
     }
   };
 
-  // Tactical Commands: Stop, Scatter, Guard
-  const handleTacticalCommand = (command: 'stop' | 'scatter' | 'guard') => {
+  // Tactical Commands: Stop, Scatter, Guard, AttackMove
+  const handleTacticalCommand = (command: 'stop' | 'scatter' | 'guard' | 'attackMove') => {
     if (selectedUnits.length === 0) return;
     if (command === 'stop') {
       selectedUnits.forEach(u => {
         u.targetX = null;
         u.targetY = null;
+        u.attackTargetId = null;
+        u.attackTargetType = null;
+        u.isAttackMoving = false;
       });
     } else if (command === 'scatter') {
       selectedUnits.forEach(u => {
         u.targetX = u.x + (Math.random() * 140 - 70);
         u.targetY = u.y + (Math.random() * 140 - 70);
+        u.attackTargetId = null;
+        u.attackTargetType = null;
+        u.isAttackMoving = false;
+      });
+    } else if (command === 'guard') {
+      selectedUnits.forEach(u => {
+        u.targetX = null;
+        u.targetY = null;
+        u.isAttackMoving = true;
+      });
+    } else if (command === 'attackMove') {
+      selectedUnits.forEach(u => {
+        u.isAttackMoving = true;
       });
     }
   };

@@ -24,7 +24,7 @@ interface CommandHUDProps {
   onTrainUnit: (type: UnitTypeId) => void;
   onTriggerSuperweaponTargetMode: () => void;
   isSuperweaponReady: boolean;
-  onTacticalCommand: (command: 'stop' | 'scatter' | 'guard') => void;
+  onTacticalCommand: (command: 'stop' | 'scatter' | 'guard' | 'attackMove') => void;
   onMinimapJump?: (worldX: number, worldY: number) => void;
 }
 
@@ -403,6 +403,13 @@ export const CommandHUD: React.FC<CommandHUDProps> = ({
               >
                 <span className="text-[8px] sm:text-[9px] text-red-300 font-bold block">[Q] TO'XTA</span>
                 <span className="text-[7px] sm:text-[8px] text-slate-400">To'xtatish</span>
+              </button>
+              <button
+                onClick={() => onTacticalCommand('attackMove')}
+                className="bg-orange-950/70 hover:bg-orange-800 border border-orange-500 p-0.5 sm:p-1 rounded text-left transition cursor-pointer flex flex-col justify-between min-h-[32px]"
+              >
+                <span className="text-[8px] sm:text-[9px] text-orange-300 font-bold block">[A] HUJUM</span>
+                <span className="text-[7px] sm:text-[8px] text-slate-400">Attack-Move</span>
               </button>
               <button
                 onClick={() => onTacticalCommand('scatter')}

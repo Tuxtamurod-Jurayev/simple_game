@@ -93,8 +93,56 @@ export class PhysicsSystem {
         u.rotorAngle = (u.rotorAngle || 0) + 0.35;
       }
 
-      // 3. Movement
-      if (u.targetX !== null && u.targetY !== null) {
+      // 3. Attack Target Pursuit (Follow and engage target)
+      if (u.attackTargetId) {
+        const enemyTeam = u.team === 'player' ? 'enemy' : 'player';
+        if (u.attackTargetType === 'building') {
+          const tgtB = buildings.find(b => b.id === u.attackTargetId && b.team === enemyTeam && b.hp > 0);
+          if (tgtB) {
+            const bx = tgtB.x + tgtB.width / 2;
+            const by = tgtB.y + tgtB.height / 2;
+            const d = Math.hypot(bx - u.x, by - u.y);
+            if (d > u.range * 0.85) {
+              u.targetX = bx;
+              u.targetY = by;
+            } else {
+              u.targetX = null;
+              u.targetY = null;
+            }
+          } else {
+            u.attackTargetId = null;
+            u.attackTargetType = null;
+          }
+        } else {
+          const tgtU = units.find(e => e.id === u.attackTargetId && e.team === enemyTeam && e.hp > 0);
+          if (tgtU) {
+            const d = Math.hypot(tgtU.x - u.x, tgtU.y - u.y);
+            if (d > u.range * 0.85) {
+              u.targetX = tgtU.x;
+              u.targetY = tgtU.y;
+            } else {
+              u.targetX = null;
+              u.targetY = null;
+            }
+          } else {
+            u.attackTargetId = null;
+            u.attackTargetType = null;
+          }
+        }
+      }
+
+      // 4. Attack-Move: if moving and enemies in range, pause to fire
+      let pauseForAttack = false;
+      if (u.isAttackMoving && u.range > 0) {
+        const enemyTeam = u.team === 'player' ? 'enemy' : 'player';
+        const inRangeEnemy = units.some(e => e.team === enemyTeam && e.hp > 0 && Math.hypot(e.x - u.x, e.y - u.y) <= u.range);
+        if (inRangeEnemy) {
+          pauseForAttack = true;
+        }
+      }
+
+      // 5. Movement
+      if (!pauseForAttack && u.targetX !== null && u.targetY !== null) {
         const dx = u.targetX - u.x;
         const dy = u.targetY - u.y;
         const dist = Math.hypot(dx, dy);
@@ -108,6 +156,7 @@ export class PhysicsSystem {
           u.y = u.targetY;
           u.targetX = null;
           u.targetY = null;
+          u.isAttackMoving = false;
         }
       }
 
@@ -215,13 +264,23 @@ export class PhysicsSystem {
         ];
 
         let target: any = null;
-        let minDist = u.range;
 
-        for (const e of enemies) {
-          const d = Math.hypot(e.x - u.x, e.y - u.y);
-          if (d <= minDist) {
-            minDist = d;
-            target = e;
+        // Prioritize designated attack target if in range
+        if (u.attackTargetId) {
+          const designated = enemies.find(e => e.id === u.attackTargetId);
+          if (designated && Math.hypot(designated.x - u.x, designated.y - u.y) <= u.range + 20) {
+            target = designated;
+          }
+        }
+
+        if (!target) {
+          let minDist = u.range;
+          for (const e of enemies) {
+            const d = Math.hypot(e.x - u.x, e.y - u.y);
+            if (d <= minDist) {
+              minDist = d;
+              target = e;
+            }
           }
         }
 
